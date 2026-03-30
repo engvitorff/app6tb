@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "push-all": "git push origin main && git push app6tb main",
+    "deploy": "git add -A && git commit -m \"deploy: update app\" && npm run push-all"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",

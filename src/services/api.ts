@@ -125,32 +125,48 @@ export const createEvent = async (event: Partial<EventShow>) => {
   const dbPayload = mapEventToDB(event);
   delete (dbPayload as any).id; // Deixar o Supabase gerar o UUID
 
+  console.log('Criando evento no Supabase...', dbPayload);
   const { data: newEvent, error: eventError } = await supabase
     .from('events')
     .insert(dbPayload)
     .select()
     .single();
   
-  if (eventError) throw eventError;
+  if (eventError) {
+    console.error('Erro detalhado do Supabase (Event):', eventError);
+    throw eventError;
+  }
+
+  console.log('Evento criado com sucesso:', newEvent);
 
   // 2. Escalar AUTOMATICAMENTE os 4 sócios
-  const musicians = await getMusicians();
-  const partners = musicians.filter(m => m.role === 'Sócio');
-  
-  if (partners.length > 0) {
-    const schedules = partners.map(p => ({
-      event_id: newEvent.id,
-      musician_id: p.id,
-      fee_override_cents: 0, // Será calculado no rateio da Dashboard/Details
-      other_expenses_cents: 0,
-      payment_status: 'Pendente'
-    }));
-
-    const { error: scheduleError } = await supabase
-      .from('scheduled_musicians')
-      .insert(schedules);
+  try {
+    const musicians = await getMusicians();
+    const partners = musicians.filter(m => m.role === 'Sócio');
     
-    if (scheduleError) console.error('Erro ao escalar sócios:', scheduleError);
+    if (partners.length > 0) {
+      console.log(`Escalando ${partners.length} sócios automaticamente...`);
+      const schedules = partners.map(p => ({
+        event_id: newEvent.id,
+        musician_id: p.id,
+        fee_override_cents: 0, 
+        other_expenses_cents: 0,
+        payment_status: 'Pendente'
+      }));
+
+      const { error: scheduleError } = await supabase
+        .from('scheduled_musicians')
+        .insert(schedules);
+      
+      if (scheduleError) {
+        console.error('Erro ao escalar sócios:', scheduleError);
+      } else {
+        console.log('Sócios escalados com sucesso.');
+      }
+    }
+  } catch (err) {
+    console.error('Erro não crítico ao tentar buscar/escalar sócios:', err);
+    // Não paramos o fluxo aqui pois o evento principal já foi criado
   }
 
   return mapEventFromDB(newEvent);

@@ -62,9 +62,10 @@ export const Events = () => {
       setContractorName(''); setDate(''); setTime(''); setLocation(''); setValue('');
       setIsModalOpen(false);
       fetchData(); // Recarrega tudo da nuvem
-    } catch (error) {
-      alert('Erro ao criar evento na nuvem. Verifique o console.');
-      console.error(error);
+    } catch (error: any) {
+      const msg = error.message || error.details || 'Erro desconhecido';
+      alert(`Erro ao criar evento: ${msg}`);
+      console.error('ERRO COMPLETO:', error);
     }
   };
 
