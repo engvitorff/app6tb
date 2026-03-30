@@ -8,6 +8,7 @@ import * as api from '../services/api';
 export const Events = () => {
   const [events, setEvents] = useState<EventShow[]>([]);
   const [issuedContracts, setIssuedContracts] = useState<IssuedContract[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -22,14 +23,16 @@ export const Events = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const [eventsData, contractsData] = await Promise.all([
         api.getEvents(),
         api.getIssuedContracts()
       ]);
       setEvents(eventsData);
       setIssuedContracts(contractsData);
-    } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+    } catch (err: any) {
+      console.error('Erro ao buscar dados:', err);
+      setError(err.message || 'Erro ao conectar com o banco de dados');
     } finally {
       setIsLoading(false);
     }
@@ -93,8 +96,32 @@ export const Events = () => {
 
       {/* Events List */}
       <div className="space-y-4">
-        {events.length === 0 && <p className="text-zinc-500 text-center py-10">Nenhum show agendado.</p>}
-        {events.map(ev => (
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+            <Loader2 className="w-8 h-8 text-[#FF169B] animate-spin mb-3" />
+            <p className="text-zinc-500 text-sm font-medium">Buscando shows na nuvem...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center">
+            <p className="text-red-400 text-sm font-bold mb-1">Ops! Algo deu errado.</p>
+            <p className="text-red-300/60 text-xs">{error}</p>
+            <button onClick={fetchData} className="mt-4 px-4 py-2 bg-red-500/20 text-red-300 rounded-lg text-xs font-bold hover:bg-red-500/30 transition-all">Tentar novamente</button>
+          </div>
+        )}
+
+        {!isLoading && !error && events.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+            <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-4 text-zinc-700">
+               <CalendarIcon className="w-8 h-8" />
+            </div>
+            <p className="text-zinc-500 text-sm font-medium">Nenhum show agendado.</p>
+            <button onClick={() => setIsModalOpen(true)} className="mt-4 text-[#FF169B] text-xs font-black uppercase tracking-widest hover:opacity-80">Agendar Primeiro Show</button>
+          </div>
+        )}
+
+        {!isLoading && events.map(ev => (
           <div 
             key={ev.id} 
             onClick={() => navigate(`/eventos/${ev.id}`)}
