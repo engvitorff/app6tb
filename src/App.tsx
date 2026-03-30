@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
+import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Musicians } from './pages/Musicians';
 import { Events } from './pages/Events';
@@ -18,7 +19,7 @@ export default function App() {
         
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Home />} />
             <Route path="/musicos" element={<Musicians />} />
             <Route path="/eventos" element={<Events />} />
             <Route path="/eventos/:id" element={<EventDetails />} />
