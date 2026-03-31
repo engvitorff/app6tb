@@ -22,8 +22,23 @@ export const AppLayout = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
   const [activities, setActivities] = useState<api.ActivityLog[]>([]);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
-  const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUser(data.session.user);
+        const name = data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'Usuário';
+        localStorage.setItem('pagode_finance_user', name);
+      }
+    };
+    getSession();
+  }, []);
+
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Usuário';
+  const userSub = user?.email || 'Acesso Administrativo';
 
   const fetchActivities = async () => {
     try {
@@ -151,7 +166,7 @@ export const AppLayout = () => {
               </button>
             </div>
             <h2 className="text-lg font-bold text-white truncate">{userName}</h2>
-            <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest mt-0.5">Administrador</p>
+            <p className="text-[9px] font-black uppercase text-zinc-600 tracking-widest mt-0.5 truncate">{userSub}</p>
           </div>
 
           <nav className="flex-1 overflow-y-auto py-4">

@@ -107,30 +107,6 @@ export const Users = () => {
           </div>
         </div>
 
-        {/* Seção 2: Dados do Grupo / Empresa */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-sm">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Building2 className="w-5 h-5 text-purple-400" />
-            </div>
-            <h2 className="text-lg font-bold text-white">Dados do Grupo</h2>
-          </div>
-
-          <div className="grid gap-4">
-            <div>
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 mb-1.5 block">Nome da Banda / Razão Social</label>
-              <input type="text" value={profile.name} onChange={e => handleChange('name', e.target.value)} required placeholder="Ex: Grupo 6 Tá Bom"
-                className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-purple-500 focus:outline-none transition-all" />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 mb-1.5 block">CNPJ (Opcional)</label>
-              <input type="text" value={profile.cnpj} onChange={e => handleChange('cnpj', e.target.value)} placeholder="00.000.000/0001-00"
-                className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-purple-500 focus:outline-none transition-all" />
-            </div>
-          </div>
-        </div>
-
         {/* Seção 3: Endereço (Para Contratos) */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center space-x-3 mb-6">
