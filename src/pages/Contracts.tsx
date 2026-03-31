@@ -41,8 +41,9 @@ export const Contracts = () => {
         // Deleta cada contrato do Supabase
         await Promise.all(contracts.map(c => api.deleteIssuedContract(c.eventId)));
         setContracts([]);
-      } catch (error) {
-        alert('Erro ao limpar contratos no banco online.');
+      } catch (error: any) {
+        console.error('Erro ao limpar contratos:', error);
+        alert(`Erro ao limpar contratos: ${error.message || 'Verifique as permissões de exclusão'}`);
       }
     }
   };
@@ -52,8 +53,9 @@ export const Contracts = () => {
       try {
         await api.deleteIssuedContract(eventId);
         fetchContracts();
-      } catch (error) {
-        alert('Erro ao excluir contrato no banco online.');
+      } catch (error: any) {
+        console.error('Erro ao excluir contrato:', error);
+        alert(`Erro ao excluir contrato: ${error.message || 'Talvez você não tenha permissão de deletar no Supabase'}`);
       }
     }
   };
