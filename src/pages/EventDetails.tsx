@@ -8,6 +8,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import * as api from '../services/api';
 
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
 export const EventDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -108,6 +110,45 @@ export const EventDetails = () => {
   useEffect(() => {
     fetchData();
   }, [id]);
+
+  // --- GOOGLE PLACES AUTOCOMPLETE ---
+  useEffect(() => {
+    if (!isEditModalOpen || !GOOGLE_MAPS_KEY) return;
+
+    // Load Script if not exists
+    if (!(window as any).google) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => initAutocomplete();
+      document.head.appendChild(script);
+    } else {
+      initAutocomplete();
+    }
+
+    function initAutocomplete() {
+      // Use a short delay to ensure modal input is rendered
+      setTimeout(() => {
+        const input = document.getElementById('location-input') as HTMLInputElement;
+        if (!input || !(window as any).google) return;
+
+        const autocomplete = new (window as any).google.maps.places.Autocomplete(input, {
+          fields: ['formatted_address', 'name', 'url'],
+        });
+
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place.name || place.formatted_address) {
+            setEditLocation(place.name || place.formatted_address || '');
+          }
+          if (place.url) {
+            setEditLocationLink(place.url);
+          }
+        });
+      }, 300);
+    }
+  }, [isEditModalOpen]);
 
   if (!event || !bandProfile) {
     return (
@@ -783,7 +824,7 @@ export const EventDetails = () => {
               </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Local / Endereço Completo</label>
-                <input type="text" value={editLocation} onChange={e => setEditLocation(e.target.value)} className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+                <input id="location-input" type="text" value={editLocation} onChange={e => setEditLocation(e.target.value)} className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
               </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1 flex justify-between">

@@ -57,3 +57,38 @@ select {
   outline: 2px solid #FF169B;
   outline-offset: 2px;
 }
+
+/* Google Autocomplete (pac-container) */
+.pac-container {
+  background-color: #18181b !important; /* zinc-900 */
+  border: 1px solid #27272a !important; /* zinc-800 */
+  border-radius: 0 0 16px 16px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+  margin-top: 4px !important;
+  z-index: 9999 !important; /* Acima do modal */
+  font-family: 'Inter', sans-serif !important;
+}
+
+.pac-item {
+  border-top: 1px solid #27272a !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  color: #a1a1aa !important; /* zinc-400 */
+}
+
+.pac-item:hover {
+  background-color: #27272a !important; /* zinc-800 */
+}
+
+.pac-item-query {
+  color: #fafafa !important; /* zinc-50 */
+  font-size: 14px !important;
+}
+
+.pac-matched {
+  color: #FF169B !important;
+}
+
+.pac-icon {
+  filter: invert(1) hue-rotate(180deg) brightness(1.5);
+}
