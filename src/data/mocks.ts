@@ -22,6 +22,7 @@ export interface EventShow {
   date: string;
   time: string;
   location: string;
+  locationLink?: string;
   totalValueCents: number;
   status: 'A receber' | 'Recebido';
   

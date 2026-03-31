@@ -31,6 +31,7 @@ export const EventDetails = () => {
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('');
   const [editLocation, setEditLocation] = useState('');
+  const [editLocationLink, setEditLocationLink] = useState('');
   const [editValue, setEditValue] = useState('');
 
   // Add Musician Form States
@@ -224,6 +225,7 @@ export const EventDetails = () => {
     setEditDate(event.date);
     setEditTime(event.time || '');
     setEditLocation(event.location);
+    setEditLocationLink(event.locationLink || '');
     setEditValue((event.totalValueCents / 100).toFixed(2));
     setIsEditModalOpen(true);
   };
@@ -252,6 +254,7 @@ export const EventDetails = () => {
       date: editDate,
       time: editTime,
       location: editLocation,
+      locationLink: editLocationLink,
       totalValueCents: parseCurrencyInput(editValue)
     });
     setIsEditModalOpen(false);
@@ -477,6 +480,11 @@ export const EventDetails = () => {
           <div className="flex items-center space-x-2">
             <MapPin className="w-4 h-4 text-[#FF169B]" />
             <span className="truncate">{event.location}</span>
+            {event.locationLink && (
+              <a href={event.locationLink} target="_blank" rel="noopener noreferrer" className="p-1 bg-emerald-500/10 text-emerald-400 rounded-md hover:bg-emerald-500/20 transition-colors">
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
           </div>
         </div>
       </header>
@@ -776,6 +784,14 @@ export const EventDetails = () => {
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Local / Endereço Completo</label>
                 <input type="text" value={editLocation} onChange={e => setEditLocation(e.target.value)} className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1 flex justify-between">
+                  <span>Link do Google Maps</span>
+                  <span className="text-[8px] text-zinc-700 italic lowercase tracking-normal font-normal mt-0.5">Opcional</span>
+                </label>
+                <input type="url" value={editLocationLink} onChange={e => setEditLocationLink(e.target.value)} placeholder="https://maps.google.com/..."
+                  className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white text-xs truncate" />
               </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Valor Total do Cachê (R$)</label>
