@@ -608,56 +608,72 @@ export const EventDetails = () => {
           const liquid = baseValue - schedule.otherExpensesCents;
 
           return (
-            <div key={schedule.id} className={`bg-zinc-900 border transition-colors rounded-xl p-4 shadow-sm relative ${schedule.paymentStatus === 'Pago' ? 'border-[#FF169B]/30' : 'border-zinc-800'}`}>
-              <button onClick={() => handleRemoveSchedule(schedule.id)} className="absolute top-4 right-14 p-2 text-zinc-600 hover:text-red-400">
-                <X className="w-4 h-4" />
-              </button>
-              <div className="flex justify-between items-start mb-2 pr-10">
-                <div>
-                  <h4 className="font-bold text-white text-md flex items-center space-x-2">
-                    <span>{musicianDetails.name}</span>
-                    <span className={`text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${isSocio ? 'bg-purple-500/20 text-purple-400' : 'bg-zinc-800 text-zinc-400'}`}>{musicianDetails.role}</span>
+            <div key={schedule.id} className={`bg-zinc-900 border transition-colors rounded-3xl p-5 shadow-sm relative ${schedule.paymentStatus === 'Pago' ? 'border-emerald-500/30 bg-emerald-500/[0.02]' : 'border-zinc-800'}`}>
+              
+              <div className="flex justify-between items-start mb-4">
+                <div className="min-w-0 pr-4">
+                  <h4 className="font-bold text-white text-base flex items-center space-x-2">
+                    <span className="truncate">{musicianDetails.name}</span>
+                    <span className={`text-[8px] uppercase font-black tracking-widest px-1.5 py-0.5 rounded-md ${isSocio ? 'bg-purple-500/20 text-purple-400' : 'bg-orange-500/20 text-orange-400'}`}>{musicianDetails.role}</span>
                   </h4>
-                  <p className="text-xs text-zinc-400 mt-0.5">{musicianDetails.instrument}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5 font-medium">{musicianDetails.instrument}</p>
                 </div>
-                <button
-                  onClick={() => togglePaymentStatus(schedule.id)}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border transition-all active:scale-95 ${
-                    schedule.paymentStatus === 'Pago' 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                      : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-amber-500/50 hover:text-amber-400'
-                  }`}
-                >
-                  {schedule.paymentStatus === 'Pago' ? (
-                    <>
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Pago</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Pagar</span>
-                    </>
-                  )}
-                </button>
+                
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                  {/* Status do Pagamento */}
+                  <button
+                    onClick={() => togglePaymentStatus(schedule.id)}
+                    className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 ${
+                      schedule.paymentStatus === 'Pago' 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                        : 'bg-zinc-800 text-zinc-500 border-zinc-700 hover:border-amber-500/40 hover:text-amber-400'
+                    }`}
+                  >
+                    {schedule.paymentStatus === 'Pago' ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span className="text-[9px] font-black uppercase tracking-widest">PAGO</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock className="w-3 h-3" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#FF169B]">PAGAR</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Remover da Escala */}
+                  <button 
+                    onClick={() => handleRemoveSchedule(schedule.id)} 
+                    className="p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"
+                    title="Remover"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-3 bg-zinc-950 p-3 rounded-lg border border-zinc-800/60">
-                <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                  <span>{isSocio ? 'Cota de Divisão' : 'Cachê Base'}</span>
-                  <span>{formatCurrency(baseValue)}</span>
+
+              <div className="mt-3 bg-zinc-950 p-4 rounded-2xl border border-zinc-800/60">
+                <div className="flex justify-between text-[11px] text-zinc-500 mb-1.5">
+                  <span className="font-bold uppercase tracking-wider">{isSocio ? 'Cota de Divisão' : 'Cachê Base'}</span>
+                  <span className="font-medium">{formatCurrency(baseValue)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-red-400/80 mb-2">
-                  <span className="cursor-pointer hover:text-red-300 transition-colors" onClick={() => { setEditingExpenseScheduleId(schedule.id); setExpenseInput((schedule.otherExpensesCents/100).toFixed(2)); }}>Vales/Despesas (Editar)</span>
-                  <span>-{formatCurrency(schedule.otherExpensesCents)}</span>
+                <div className="flex justify-between text-[11px] text-red-400/80 mb-3 border-b border-zinc-800/50 pb-2">
+                  <span className="cursor-pointer hover:text-red-300 transition-colors flex items-center space-x-1" onClick={() => { setEditingExpenseScheduleId(schedule.id); setExpenseInput((schedule.otherExpensesCents/100).toFixed(2)); }}>
+                    <Edit3 className="w-3 h-3" />
+                    <span className="font-bold uppercase tracking-wider underline">Vales / Despesas</span>
+                  </span>
+                  <span className="font-medium">-{formatCurrency(schedule.otherExpensesCents)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold border-t border-zinc-800/50 pt-2 mt-1">
-                  <span className="text-white">Líquido</span>
-                  <span className="text-emerald-400">{formatCurrency(liquid)}</span>
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-xs text-zinc-400 font-black uppercase tracking-widest">Líquido</span>
+                  <span className="text-base font-black text-emerald-400">{formatCurrency(liquid)}</span>
                 </div>
               </div>
             </div>
           );
         })}
+
 
       </div>
 
