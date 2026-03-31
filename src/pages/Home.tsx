@@ -22,9 +22,12 @@ export const Home = () => {
   const [bandProfile, setBandProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  
-  // Calendário State
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Filtros
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [filterMonth, setFilterMonth] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   const fetchData = async () => {
     try {
@@ -33,7 +36,7 @@ export const Home = () => {
         api.getEvents(),
         api.getBandProfile()
       ]);
-      setEvents(eventsData);
+      setEvents(eventsData || []);
       setBandProfile(bandData);
     } catch (error) {
       console.error('Erro ao buscar dados da home:', error);
@@ -45,6 +48,39 @@ export const Home = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const years = useMemo(() => {
+    const yearsSet = new Set<string>();
+    events.forEach(ev => yearsSet.add(ev.date.split('-')[0]));
+    if (yearsSet.size === 0) yearsSet.add(new Date().getFullYear().toString());
+    return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+  }, [events]);
+
+  const months = [
+    { label: 'Todos os meses', value: 'all' },
+    { label: 'Janeiro', value: '01' },
+    { label: 'Fevereiro', value: '02' },
+    { label: 'Março', value: '03' },
+    { label: 'Abril', value: '04' },
+    { label: 'Maio', value: '05' },
+    { label: 'Junho', value: '06' },
+    { label: 'Julho', value: '07' },
+    { label: 'Agosto', value: '08' },
+    { label: 'Setembro', value: '09' },
+    { label: 'Outubro', value: '10' },
+    { label: 'Novembro', value: '11' },
+    { label: 'Dezembro', value: '12' },
+  ];
+
+  const filteredEvents = useMemo(() => {
+    return events.filter(ev => {
+      const [year, month] = ev.date.split('-');
+      const matchYear = year === filterYear;
+      const matchMonth = filterMonth === 'all' || month === filterMonth;
+      const matchStatus = filterStatus === 'all' || ev.status === filterStatus;
+      return matchYear && matchMonth && matchStatus;
+    });
+  }, [events, filterYear, filterMonth, filterStatus]);
 
   // --- Lógica do Calendário ---
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
@@ -83,7 +119,6 @@ export const Home = () => {
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
-  // Helper para calcular posição do Gantt (0-23h)
   const calculateGanttPos = (timeStr: string) => {
     if (!timeStr) return 0;
     const [h, m] = timeStr.split(':').map(Number);
@@ -136,7 +171,36 @@ export const Home = () => {
         </div>
       </header>
 
-      {/* NOVO: Calendário de Shows */}
+      {/* Barra de Filtros Compacta */}
+      <section className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 mb-6 flex space-x-2 backdrop-blur-sm sticky top-4 z-20 overflow-x-auto no-scrollbar">
+        <select 
+          value={filterYear} 
+          onChange={(e) => setFilterYear(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none min-w-[70px] text-center"
+        >
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+
+        <select 
+          value={filterMonth} 
+          onChange={(e) => setFilterMonth(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[100px] text-center"
+        >
+          {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+
+        <select 
+          value={filterStatus} 
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[120px] text-center"
+        >
+          <option value="all">Status: Todos</option>
+          <option value="Recebido">Recebidos</option>
+          <option value="A receber">Pendentes</option>
+        </select>
+      </section>
+
+      {/* Calendário de Shows */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4 px-1">
            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
@@ -208,32 +272,28 @@ export const Home = () => {
               {/* Linha do Tempo (Gantt-Style) */}
               <div className="mb-8">
                  <div className="relative h-48 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 overflow-hidden">
-                    {/* Eixo de Tempo (Labels) */}
                     <div className="flex justify-between absolute bottom-1 left-4 right-4 text-[9px] font-black text-zinc-700 tracking-tighter uppercase">
                        <span>08h</span><span>12h</span><span>16h</span><span>20h</span><span>00h</span><span>04h</span>
                     </div>
 
-                    {/* Linha de Referência de Hora Atual (se for hoje) */}
-                    {selectedDate === new Date().toISOString().split('T')[0] && (
-                       <div className="absolute top-0 bottom-6 w-[1px] bg-white/20 z-10" style={{ left: `${calculateGanttPos(new Date().getHours() + ":" + new Date().getMinutes())}%` }}></div>
-                    )}
-
-                    {/* Gráfico de Barras - Cada show é uma linha */}
-                    <div className="space-y-3 mt-2 pr-6">
+                    <div className="space-y-4 mt-2 pr-6">
                        {getEventsForDay(selectedDate).length === 0 ? (
                          <div className="h-full flex items-center justify-center text-zinc-700 text-[10px] uppercase font-bold tracking-widest py-10 italic">Nenhum show marcado</div>
                        ) : (
                          getEventsForDay(selectedDate).sort((a,b) => (a.time || '').localeCompare(b.time || '')).map((ev, i) => {
                             const startPercent = calculateGanttPos(ev.time || '00:00');
-                            const durationPercent = 16; // Assumindo show de 4h para visualização (4/24 * 100)
+                            const durationPercent = 25; // 6h visual representation
                             
                             return (
-                               <div key={ev.id} className="relative h-10 group" onClick={() => navigate(`/eventos/${ev.id}`)}>
+                               <div key={ev.id} className="relative h-12 group" onClick={() => navigate(`/eventos/${ev.id}`)}>
                                   <div 
-                                    className="absolute h-full bg-gradient-to-r from-[#FF169B] to-purple-600 rounded-xl flex items-center px-3 shadow-lg shadow-pink-900/10 cursor-pointer overflow-hidden group-hover:opacity-90 transition-all border border-white/10"
-                                    style={{ left: `${startPercent}%`, width: `${durationPercent}%` }}
+                                    className="absolute h-full bg-gradient-to-br from-[#FF169B] to-purple-600 rounded-2xl flex items-center px-4 shadow-lg shadow-pink-900/10 cursor-pointer overflow-hidden group-hover:scale-[1.02] transition-all border border-white/20"
+                                    style={{ left: `${startPercent}%`, width: `${durationPercent}%`, minWidth: '100px' }}
                                   >
-                                     <span className="text-[10px] font-black text-white truncate drop-shadow-md">{ev.contractorName}</span>
+                                     <div className="flex flex-col min-w-0">
+                                        <span className="text-[10px] font-black text-white truncate drop-shadow-md leading-tight">{ev.contractorName}</span>
+                                        <span className="text-[8px] font-bold text-white/70">{ev.time}</span>
+                                     </div>
                                   </div>
                                </div>
                             );
@@ -243,7 +303,6 @@ export const Home = () => {
                  </div>
               </div>
 
-              {/* Lista Detalhada */}
               <div className="max-h-40 overflow-y-auto space-y-3 pr-1">
                  {getEventsForDay(selectedDate).map(ev => (
                     <div key={ev.id} className="bg-zinc-900 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
@@ -265,24 +324,17 @@ export const Home = () => {
       {/* Bloco 2: Shows do Período */}
       <section className="mb-8">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white">Shows Próximos</h2>
+          <h2 className="text-lg font-bold text-white">Shows Filtrados</h2>
           <Link to="/eventos" className="text-[#FF169B] text-xs font-bold uppercase tracking-wider hover:opacity-80">Ver Todos</Link>
         </div>
 
         <div className="space-y-4">
-          {events.length === 0 && (
+          {filteredEvents.length === 0 && (
             <div className="bg-zinc-900/50 border border-zinc-800 border-dashed rounded-3xl p-8 text-center text-zinc-500 text-sm italic">
-              Nenhum show agendado no momento.
+              Nenhum show encontrado para os filtros selecionados.
             </div>
           )}
-          {events.filter(ev => {
-             // Só mostra do mês atual em diante
-             const evDate = new Date(ev.date + 'T12:00:00');
-             const now = new Date();
-             now.setDate(1); // Inicio do mês atual
-             now.setHours(0,0,0,0);
-             return evDate >= now;
-          }).slice(0, 5).map((event) => (
+          {filteredEvents.slice(0, 5).map((event) => (
             <div 
               key={event.id}
               onClick={() => navigate(`/eventos/${event.id}`)}
@@ -304,7 +356,7 @@ export const Home = () => {
               <div className="text-right">
                 <p className="text-sm font-bold text-emerald-400">{formatCurrency(event.totalValueCents)}</p>
                 <div className="flex items-center justify-end space-x-1 mt-0.5">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${event.status === 'Pago' ? 'text-emerald-500' : 'text-zinc-500'}`}>{event.status}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${event.status === 'Recebido' ? 'text-emerald-500' : 'text-zinc-500'}`}>{event.status}</span>
                 </div>
               </div>
             </div>

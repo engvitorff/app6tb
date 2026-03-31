@@ -6,10 +6,7 @@ import {
   X, 
   Loader2, 
   MapPin, 
-  DollarSign, 
-  CheckCircle2, 
-  CalendarPlus,
-  AlertCircle
+  CalendarPlus
 } from 'lucide-react';
 import { formatCurrency, parseCurrencyInput } from '../utils/currency';
 import { EventShow, IssuedContract } from '../data/mocks';
@@ -30,6 +27,11 @@ export const Events = () => {
   const [location, setLocation] = useState('');
   const [value, setValue] = useState('');
 
+  // Filtros
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
+  const [filterMonth, setFilterMonth] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -38,7 +40,7 @@ export const Events = () => {
         api.getEvents(),
         api.getIssuedContracts()
       ]);
-      setEvents(eventsData);
+      setEvents(eventsData || []);
       setIssuedContracts(contractsData);
     } catch (err: any) {
       console.error('Erro ao buscar dados:', err);
@@ -52,17 +54,44 @@ export const Events = () => {
     fetchData();
   }, []);
 
-  // --- Lógica de Ordenação e Filtros ---
-  const sortedEvents = useMemo(() => {
-    return [...events].sort((a, b) => {
-      // 1. Status 'A receber' primeiro
+  const years = useMemo(() => {
+    const yearsSet = new Set<string>();
+    events.forEach(ev => yearsSet.add(ev.date.split('-')[0]));
+    if (yearsSet.size === 0) yearsSet.add(new Date().getFullYear().toString());
+    return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+  }, [events]);
+
+  const months = [
+    { label: 'Todos os meses', value: 'all' },
+    { label: 'Janeiro', value: '01' },
+    { label: 'Fevereiro', value: '02' },
+    { label: 'Março', value: '03' },
+    { label: 'Abril', value: '04' },
+    { label: 'Maio', value: '05' },
+    { label: 'Junho', value: '06' },
+    { label: 'Julho', value: '07' },
+    { label: 'Agosto', value: '08' },
+    { label: 'Setembro', value: '09' },
+    { label: 'Outubro', value: '10' },
+    { label: 'Novembro', value: '11' },
+    { label: 'Dezembro', value: '12' },
+  ];
+
+  const filteredEvents = useMemo(() => {
+    const filtered = events.filter(ev => {
+      const [year, month] = ev.date.split('-');
+      const matchYear = year === filterYear;
+      const matchMonth = filterMonth === 'all' || month === filterMonth;
+      const matchStatus = filterStatus === 'all' || ev.status === filterStatus;
+      return matchYear && matchMonth && matchStatus;
+    });
+
+    return filtered.sort((a, b) => {
       if (a.status === 'A receber' && b.status === 'Recebido') return -1;
       if (a.status === 'Recebido' && b.status === 'A receber') return 1;
-      
-      // 2. Ordenar por data (menor data em cima)
       return a.date.localeCompare(b.date);
     });
-  }, [events]);
+  }, [events, filterYear, filterMonth, filterStatus]);
 
   const isOverdue = (dateStr: string, status: string) => {
      if (status === 'Recebido') return false;
@@ -100,12 +129,6 @@ export const Events = () => {
     }
   };
 
-  const formatDateBR = (dateString: string) => {
-    if (!dateString) return '';
-    const [year, month, day] = dateString.split('-');
-    return `${day}/${month}/${year}`;
-  };
-
   return (
     <div className="p-6 pb-24">
       {/* Header */}
@@ -121,6 +144,35 @@ export const Events = () => {
           <CalendarPlus className="w-6 h-6 text-white" />
         </button>
       </div>
+
+      {/* Barra de Filtros Compacta */}
+      <section className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 mb-6 flex space-x-2 backdrop-blur-sm sticky top-4 z-20 overflow-x-auto no-scrollbar">
+        <select 
+          value={filterYear} 
+          onChange={(e) => setFilterYear(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none min-w-[70px] text-center"
+        >
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+
+        <select 
+          value={filterMonth} 
+          onChange={(e) => setFilterMonth(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[100px] text-center"
+        >
+          {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+
+        <select 
+          value={filterStatus} 
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[120px] text-center"
+        >
+          <option value="all">Status: Todos</option>
+          <option value="Recebido">Recebidos</option>
+          <option value="A receber">Pendentes</option>
+        </select>
+      </section>
 
       {/* Events List */}
       <div className="space-y-4">
@@ -139,17 +191,17 @@ export const Events = () => {
           </div>
         )}
 
-        {!isLoading && !error && events.length === 0 && (
+        {!isLoading && !error && filteredEvents.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
             <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-4 text-zinc-700">
                <CalendarIcon className="w-8 h-8" />
             </div>
-            <p className="text-zinc-500 text-sm font-medium">Nenhum show agendado.</p>
+            <p className="text-zinc-500 text-sm font-medium">Nenhum show encontrado para esses filtros.</p>
             <button onClick={() => setIsModalOpen(true)} className="mt-4 text-[#FF169B] text-xs font-black uppercase tracking-widest hover:opacity-80">Agendar Agora</button>
           </div>
         )}
 
-        {!isLoading && sortedEvents.map(ev => {
+        {!isLoading && filteredEvents.map(ev => {
           const overdue = isOverdue(ev.date, ev.status);
           
           return (

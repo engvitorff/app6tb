@@ -189,22 +189,20 @@ export const Dashboard = () => {
       </header>
 
       {/* Barra de Filtros Estilo Glassmorphism */}
-      <section className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-4 mb-8 flex flex-col space-y-3 md:flex-row md:space-y-0 md:space-x-3 backdrop-blur-sm sticky top-4 z-20">
-        <div className="flex items-center space-x-2 bg-zinc-950/50 rounded-2xl px-3 py-2 border border-zinc-800 flex-1">
-          <Filter className="w-3.5 h-3.5 text-zinc-500" />
-          <select 
-            value={filterYear} 
-            onChange={(e) => setFilterYear(e.target.value)}
-            className="bg-transparent text-white text-xs font-bold focus:outline-none w-full"
-          >
-            {years.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
+      {/* Barra de Filtros Compacta */}
+      <section className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 mb-6 flex space-x-2 backdrop-blur-sm sticky top-4 z-20 overflow-x-auto no-scrollbar">
+        <select 
+          value={filterYear} 
+          onChange={(e) => setFilterYear(e.target.value)}
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none min-w-[70px] text-center"
+        >
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
 
         <select 
           value={filterMonth} 
           onChange={(e) => setFilterMonth(e.target.value)}
-          className="bg-zinc-950/50 text-white text-xs font-bold rounded-2xl px-4 py-2 border border-zinc-800 focus:outline-none flex-1 appearance-none"
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[100px] text-center"
         >
           {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
@@ -212,10 +210,10 @@ export const Dashboard = () => {
         <select 
           value={filterStatus} 
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-zinc-950/50 text-white text-xs font-bold rounded-2xl px-4 py-2 border border-zinc-800 focus:outline-none flex-1 appearance-none"
+          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[120px] text-center"
         >
-          <option value="all">Filtro: Todos Status</option>
-          <option value="Pago">Recebidos</option>
+          <option value="all">Status: Todos</option>
+          <option value="Recebido">Recebidos</option>
           <option value="A receber">Pendentes</option>
         </select>
       </section>
