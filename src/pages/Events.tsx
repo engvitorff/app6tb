@@ -156,69 +156,49 @@ export const Events = () => {
           <div 
             key={ev.id} 
             onClick={() => navigate(`/eventos/${ev.id}`)}
-            className={`bg-zinc-900 border ${overdue ? 'border-red-500/50 bg-red-500/5 shadow-lg shadow-red-900/10' : 'border-zinc-800'} rounded-[32px] p-5 flex flex-col hover:bg-zinc-800/50 active:scale-98 transition-all cursor-pointer group relative overflow-hidden`}
+            className={`bg-zinc-900 border ${overdue ? 'border-red-500/50 bg-red-500/5' : 'border-zinc-800'} rounded-2xl p-3.5 flex flex-col hover:bg-zinc-800/50 active:scale-98 transition-all cursor-pointer group relative overflow-hidden`}
           >
-            {/* Tag de Status */}
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center space-x-2">
-                 <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center mb-1 ${
-                   ev.status === 'Pago' 
-                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                     : overdue 
-                       ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'
-                       : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-                 }`}>
-                   {ev.status === 'Pago' ? <CheckCircle2 className="w-3 h-3 mr-1" /> : overdue ? <AlertCircle className="w-3 h-3 mr-1" /> : <ClockIcon className="w-3 h-3 mr-1" />}
-                   <span>{ev.status === 'Pago' ? 'Recebido' : overdue ? 'Pendente (Atrasado)' : 'A Receber'}</span>
+            {/* Linha Topo: Status e Data */}
+            <div className="flex justify-between items-center mb-3">
+               <div className="flex items-center space-x-2">
+                 <div className={`w-10 h-10 ${overdue ? 'bg-red-500/20 border-red-500/30' : 'bg-zinc-800 border-zinc-700'} rounded-lg flex flex-col items-center justify-center border transition-colors`}>
+                    <span className={`text-[8px] font-black uppercase tracking-tighter ${overdue ? 'text-red-400' : 'text-[#FF169B]'}`}>
+                      {new Date(ev.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}
+                    </span>
+                    <span className="text-sm font-black text-white leading-tight">
+                      {ev.date.split('-')[2]}
+                    </span>
                  </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-5 mb-4">
-              <div className={`w-14 h-14 ${overdue ? 'bg-red-500/20 border-red-500/30' : 'bg-zinc-800 border-zinc-700'} rounded-2xl flex flex-col items-center justify-center border group-hover:border-[#FF169B]/40 transition-colors`}>
-                <span className={`text-[10px] font-black uppercase tracking-tighter ${overdue ? 'text-red-400' : 'text-[#FF169B]'}`}>
-                  {new Date(ev.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}
-                </span>
-                <span className="text-xl font-black text-white tracking-tighter">
-                  {ev.date.split('-')[2]}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className={`text-lg font-bold ${overdue ? 'text-red-300' : 'text-white'} truncate leading-tight group-hover:text-[#FF169B] transition-colors`}>
-                  {ev.contractorName}
-                </h3>
-                <div className="flex items-center space-x-4 mt-1 text-zinc-500">
-                  <div className="flex items-center space-x-1">
-                    <ClockIcon className="w-3 h-3" />
-                    <span className="text-xs font-bold">{ev.time || '--:--'}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-3 h-3" />
-                    <span className="text-[10px] truncate max-w-[100px]">{ev.location}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50">
-               <div>
-                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-0.5">Valor Bruto</p>
-                  <p className={`text-base font-black ${overdue ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(ev.totalValueCents)}</p>
+                 <div>
+                    <h3 className={`text-sm font-bold ${overdue ? 'text-red-300' : 'text-white'} truncate max-w-[140px] leading-tight group-hover:text-[#FF169B] transition-colors`}>
+                      {ev.contractorName}
+                    </h3>
+                    <div className="flex items-center space-x-2 text-zinc-500">
+                       <ClockIcon className="w-3 h-3" />
+                       <span className="text-[10px] font-bold">{ev.time || '--:--'}</span>
+                    </div>
+                 </div>
                </div>
-               <div className="flex space-x-2">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); navigate(`/eventos/${ev.id}`); }}
-                    className={`h-11 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                      overdue ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
-                    } hover:opacity-80 active:scale-95`}
-                  >
-                    Detalhes
-                  </button>
+
+               <div className="text-right">
+                  <p className={`text-sm font-black ${overdue ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(ev.totalValueCents)}</p>
+                  <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${ev.status === 'Pago' ? 'text-emerald-500/50' : overdue ? 'text-red-500' : 'text-zinc-600'}`}>
+                    {ev.status}
+                  </p>
+               </div>
+            </div>
+
+            {/* Linha Bottom: Info Geográfica (Compacto) */}
+            <div className="flex items-center space-x-3 pt-2 border-t border-zinc-800/50">
+               <div className="flex items-center space-x-1 min-w-0">
+                  <MapPin className="w-3 h-3 text-zinc-600 flex-shrink-0" />
+                  <span className="text-[10px] text-zinc-500 truncate">{ev.location}</span>
                </div>
             </div>
           </div>
         );
       })}
+
       </div>
 
       {/* MODAL: Adicionar Show */}
