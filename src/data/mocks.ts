@@ -23,7 +23,7 @@ export interface EventShow {
   time: string;
   location: string;
   totalValueCents: number;
-  status: 'A receber' | 'Pago';
+  status: 'A receber' | 'Recebido';
   
   operationalExpensesCents: number;
   customExpenseName?: string;

@@ -56,8 +56,8 @@ export const Events = () => {
   const sortedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
       // 1. Status 'A receber' primeiro
-      if (a.status === 'A receber' && b.status === 'Pago') return -1;
-      if (a.status === 'Pago' && b.status === 'A receber') return 1;
+      if (a.status === 'A receber' && b.status === 'Recebido') return -1;
+      if (a.status === 'Recebido' && b.status === 'A receber') return 1;
       
       // 2. Ordenar por data (menor data em cima)
       return a.date.localeCompare(b.date);
@@ -65,7 +65,7 @@ export const Events = () => {
   }, [events]);
 
   const isOverdue = (dateStr: string, status: string) => {
-     if (status === 'Pago') return false;
+     if (status === 'Recebido') return false;
      const evDate = new Date(dateStr + 'T12:00:00');
      const yesterday = new Date();
      yesterday.setDate(yesterday.getDate() - 1);
@@ -182,7 +182,7 @@ export const Events = () => {
 
                <div className="text-right">
                   <p className={`text-sm font-black ${overdue ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(ev.totalValueCents)}</p>
-                  <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${ev.status === 'Pago' ? 'text-emerald-500/50' : overdue ? 'text-red-500' : 'text-zinc-600'}`}>
+                  <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${ev.status === 'Recebido' ? 'text-emerald-500/50' : overdue ? 'text-red-500' : 'text-zinc-600'}`}>
                     {ev.status}
                   </p>
                </div>

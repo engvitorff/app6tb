@@ -440,12 +440,12 @@ export const EventDetails = () => {
           <div className="flex space-x-2 relative z-50">
             <button
               onClick={() => {
-                const newStatus = event.status === 'Pago' ? 'A receber' : 'Pago';
+                const newStatus = event.status === 'Recebido' ? 'A receber' : 'Recebido';
                 saveEventUpdates({ status: newStatus as any });
               }}
-              className={`${event.status === 'Pago' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30'} border p-2.5 rounded-full hover:opacity-80 transition-all shadow-sm active:scale-95 flex items-center justify-center`}
+              className={`${event.status === 'Recebido' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-amber-400 bg-amber-500/10 border-amber-500/30'} border p-2.5 rounded-full hover:opacity-80 transition-all shadow-sm active:scale-95 flex items-center justify-center`}
             >
-              {event.status === 'Pago' ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+              {event.status === 'Recebido' ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
             </button>
 
             <button
@@ -622,9 +622,23 @@ export const EventDetails = () => {
                 </div>
                 <button
                   onClick={() => togglePaymentStatus(schedule.id)}
-                  className={`flex items-center justify-center w-8 h-8 rounded-full ${schedule.paymentStatus === 'Pago' ? 'bg-[#FF169B] text-white shadow-lg' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-full border transition-all active:scale-95 ${
+                    schedule.paymentStatus === 'Pago' 
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                      : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-amber-500/50 hover:text-amber-400'
+                  }`}
                 >
-                  {schedule.paymentStatus === 'Pago' ? <Check className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                  {schedule.paymentStatus === 'Pago' ? (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Pago</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Pagar</span>
+                    </>
+                  )}
                 </button>
               </div>
               <div className="mt-3 bg-zinc-950 p-3 rounded-lg border border-zinc-800/60">
@@ -633,7 +647,7 @@ export const EventDetails = () => {
                   <span>{formatCurrency(baseValue)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-red-400/80 mb-2">
-                  <span className="cursor-pointer" onClick={() => { setEditingExpenseScheduleId(schedule.id); setExpenseInput((schedule.otherExpensesCents/100).toFixed(2)); }}>Vales/Despesas (Editar)</span>
+                  <span className="cursor-pointer hover:text-red-300 transition-colors" onClick={() => { setEditingExpenseScheduleId(schedule.id); setExpenseInput((schedule.otherExpensesCents/100).toFixed(2)); }}>Vales/Despesas (Editar)</span>
                   <span>-{formatCurrency(schedule.otherExpensesCents)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold border-t border-zinc-800/50 pt-2 mt-1">
@@ -644,6 +658,7 @@ export const EventDetails = () => {
             </div>
           );
         })}
+
       </div>
 
       {/* Modal: Escala */}
