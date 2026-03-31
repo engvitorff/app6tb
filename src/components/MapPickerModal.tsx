@@ -216,7 +216,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({ onClose, onConfi
 
           {/* Search results dropdown */}
           {showResults && (
-            <div className="absolute left-4 right-4 top-[72px] bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden z-10 shadow-2xl">
+            <div className="absolute left-4 right-4 top-[72px] bg-zinc-900 border border-zinc-700 rounded-xl overflow-hidden z-[9999] shadow-2xl">
               {searchResults.map((result) => (
                 <button
                   key={result.place_id}
