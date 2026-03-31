@@ -683,13 +683,19 @@ export const EventDetails = () => {
           <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-10">
             <h2 className="text-xl font-bold text-white mb-6">Escalar Músico</h2>
             <form onSubmit={handleAddSchedule} className="space-y-4">
-              <select value={selectedMusicianId} onChange={e => setSelectedMusicianId(e.target.value)} required className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white appearance-none">
-                <option value="">Selecione um músico</option>
-                {availableMusicians.map(m => <option key={m.id} value={m.id}>{m.name} ({m.instrument})</option>)}
-              </select>
+              <div>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1 mb-1 block">Músico no Elenco</label>
+                <select value={selectedMusicianId} onChange={e => setSelectedMusicianId(e.target.value)} required className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white appearance-none font-bold">
+                  <option value="">Selecione um músico</option>
+                  {availableMusicians.map(m => <option key={m.id} value={m.id}>{m.name} ({m.instrument})</option>)}
+                </select>
+              </div>
               {isSelectedFreelancer && (
-                <input type="number" step="0.01" value={feeInput} onChange={e => setFeeInput(e.target.value)} required placeholder="Cachê do Freelancer (R$)"
-                  className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+                <div>
+                  <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1 mb-1 block">Cachê Acordado (R$)</label>
+                  <input type="number" step="0.01" value={feeInput} onChange={e => setFeeInput(e.target.value)} required placeholder="0.00"
+                    className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white font-bold" />
+                </div>
               )}
               <div className="flex space-x-3 mt-6">
                 <button type="button" onClick={() => setIsScaleModalOpen(false)} className="flex-1 h-12 bg-zinc-900 border border-zinc-800 text-white rounded-xl">Cancelar</button>
@@ -706,8 +712,11 @@ export const EventDetails = () => {
           <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-xs rounded-3xl p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-white mb-4">Lançar Despesa/Vale</h3>
             <form onSubmit={handleSaveExpense} className="space-y-4">
-              <input type="number" step="0.01" value={expenseInput} onChange={e => setExpenseInput(e.target.value)} autoFocus
-                className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+              <div>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1 mb-1 block">Valor do Vale/Despesa (R$)</label>
+                <input type="number" step="0.01" value={expenseInput} onChange={e => setExpenseInput(e.target.value)} autoFocus
+                  className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white font-bold" />
+              </div>
               <div className="flex space-x-2">
                 <button type="button" onClick={() => setEditingExpenseScheduleId(null)} className="flex-1 h-10 bg-zinc-900 text-white rounded-lg">Voltar</button>
                 <button type="submit" className="flex-1 h-10 bg-emerald-600 text-white font-bold rounded-lg uppercase text-xs">Salvar</button>
@@ -750,16 +759,31 @@ export const EventDetails = () => {
           <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-2xl">
             <h2 className="text-xl font-bold text-white mb-6">Editar Informações do Show</h2>
             <form onSubmit={handleEditEvent} className="space-y-4">
-              <input type="text" value={editContractorName} onChange={e => setEditContractorName(e.target.value)} required className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
-              <div className="grid grid-cols-2 gap-4">
-                <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} required className="h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
-                <input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} className="h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+              <div>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Contratante / Nome do Evento</label>
+                <input type="text" value={editContractorName} onChange={e => setEditContractorName(e.target.value)} required className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
               </div>
-              <input type="text" value={editLocation} onChange={e => setEditLocation(e.target.value)} className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
-              <input type="number" step="0.01" value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full h-12 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white font-bold text-emerald-400" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Data do Show</label>
+                  <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} required className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Horário (Início)</label>
+                  <input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Local / Endereço Completo</label>
+                <input type="text" value={editLocation} onChange={e => setEditLocation(e.target.value)} className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white" />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Valor Total do Cachê (R$)</label>
+                <input type="number" step="0.01" value={editValue} onChange={e => setEditValue(e.target.value)} className="w-full h-12 mt-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 text-white font-bold text-emerald-400" />
+              </div>
               <div className="flex space-x-3 mt-6">
                 <button type="button" onClick={closeEditModal} className="flex-1 h-12 bg-zinc-900 border border-zinc-800 text-white rounded-xl">Cancelar</button>
-                <button type="submit" className="flex-1 h-12 bg-[#FF169B] text-white font-bold rounded-xl">Salvar</button>
+                <button type="submit" className="flex-1 h-12 bg-[#FF169B] text-white font-bold rounded-xl active:scale-95 transition-transform">Salvar Alterações</button>
               </div>
             </form>
           </div>
