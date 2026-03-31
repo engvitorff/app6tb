@@ -24,6 +24,8 @@ export const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  // Filtros sincronizados com o calendário
+  const [filterStatus, setFilterStatus] = useState('all');
 
   const fetchData = async () => {
     try {
@@ -65,17 +67,59 @@ export const Home = () => {
     getUser();
   }, []);
 
-  // Shows filtrados pelo mês do calendário
+  // Anos disponíveis (baseado nos eventos)
+  const years = useMemo(() => {
+    const yearsSet = new Set<string>();
+    events.forEach(ev => yearsSet.add(ev.date.split('-')[0]));
+    yearsSet.add(new Date().getFullYear().toString());
+    return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+  }, [events]);
+
+  const months = [
+    { label: 'Janeiro', value: '01' },
+    { label: 'Fevereiro', value: '02' },
+    { label: 'Março', value: '03' },
+    { label: 'Abril', value: '04' },
+    { label: 'Maio', value: '05' },
+    { label: 'Junho', value: '06' },
+    { label: 'Julho', value: '07' },
+    { label: 'Agosto', value: '08' },
+    { label: 'Setembro', value: '09' },
+    { label: 'Outubro', value: '10' },
+    { label: 'Novembro', value: '11' },
+    { label: 'Dezembro', value: '12' },
+  ];
+
+  // Filtro de ano e mês derivados do calendário (fonte única de verdade é currentDate)
+  const filterYear = String(currentDate.getFullYear());
+  const filterMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+
+  // Mudar filtro de ano → atualiza calendário
+  const handleYearChange = (year: string) => {
+    const newDate = new Date(currentDate);
+    newDate.setFullYear(parseInt(year));
+    setCurrentDate(newDate);
+  };
+
+  // Mudar filtro de mês → atualiza calendário
+  const handleMonthChange = (month: string) => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(parseInt(month) - 1);
+    setCurrentDate(newDate);
+  };
+
+  // Shows filtrados pelo mês/ano do calendário + status
   const filteredEvents = useMemo(() => {
-    const calYear = String(currentDate.getFullYear());
-    const calMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
     return events
       .filter(ev => {
         const [year, month] = ev.date.split('-');
-        return year === calYear && month === calMonth;
+        const matchYear = year === filterYear;
+        const matchMonth = month === filterMonth;
+        const matchStatus = filterStatus === 'all' || ev.status === filterStatus;
+        return matchYear && matchMonth && matchStatus;
       })
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [events, currentDate]);
+  }, [events, filterYear, filterMonth, filterStatus]);
 
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
@@ -149,7 +193,20 @@ export const Home = () => {
         </div>
       </header>
 
-
+      {/* Filtros sincronizados com o calendário */}
+      <section className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 mb-6 flex space-x-2 backdrop-blur-sm sticky top-4 z-20 overflow-x-auto no-scrollbar">
+        <select value={filterYear} onChange={e => handleYearChange(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-2 py-2 border border-zinc-800">
+          {years.map(y => <option key={y} value={y}>{y}</option>)}
+        </select>
+        <select value={filterMonth} onChange={e => handleMonthChange(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-2 py-2 border border-zinc-800 flex-1">
+          {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+        </select>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-2 py-2 border border-zinc-800 flex-1">
+          <option value="all">Status: Todos</option>
+          <option value="Recebido">Recebidos</option>
+          <option value="A receber">Pendentes</option>
+        </select>
+      </section>
 
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4 px-1">
