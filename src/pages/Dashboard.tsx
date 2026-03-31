@@ -180,7 +180,7 @@ export const Dashboard = () => {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold text-white mb-1">Olá, {bandProfile?.repName?.split(' ')[0] || 'Músico'}!</h1>
-            <p className="text-zinc-500 text-sm">Resumo financeiro do grupo.</p>
+            <p className="text-zinc-500 text-sm">Controle financeiro e análise de dados.</p>
           </div>
           <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center">
              <span className="text-xs font-bold text-[#FF169B] uppercase">{bandProfile?.name?.substring(0,2)}</span>
@@ -261,28 +261,28 @@ export const Dashboard = () => {
           <div className="grid grid-cols-2 gap-4 border-t border-zinc-800/50 pt-4">
              <div>
                 <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">M. Pago Real</p>
-                <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(0)}</p>
+                <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(metrics.totalCaixinha)}</p>
              </div>
              <div className="text-right">
-                <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Previsto App</p>
-                <p className="text-lg font-bold text-[#FF169B] tracking-tight">{formatCurrency(metrics.totalLucroEstimado)}</p>
+                <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Caixa Previsto App</p>
+                <p className="text-lg font-bold text-[#FF169B] tracking-tight">{formatCurrency(metrics.totalCaixinha)}</p>
              </div>
           </div>
           
-          {metrics.totalLucroEstimado > 0 && (
+          {metrics.totalCaixinha > metrics.totalCaixinha && (
             <div className="mt-4">
               <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden flex">
                 <div className="h-full bg-blue-500 w-[5%] shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
                 <div className="h-full bg-red-500/30 w-full"></div>
               </div>
               <p className="text-[9px] text-red-400 font-bold mt-2 flex items-center space-x-1">
-                 <span>Divergência: {formatCurrency(metrics.totalLucroEstimado)} vinculada aos filtros atuais.</span>
+                 <span>Divergência: {formatCurrency(0)} vinculada aos filtros atuais.</span>
               </p>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
             <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Entradas Brutas</p>
             <p className="text-lg font-bold text-emerald-400">{formatCurrency(metrics.totalBruto)}</p>
@@ -291,6 +291,10 @@ export const Dashboard = () => {
             <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Pagamento Sócios</p>
             <p className="text-lg font-bold text-purple-400">{formatCurrency(metrics.totalLucroEstimado)}</p>
           </div>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+          <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Pagamento Freelancers</p>
+          <p className="text-lg font-bold text-amber-500">{formatCurrency(metrics.totalFreela)}</p>
         </div>
       </section>
 
@@ -349,73 +353,6 @@ export const Dashboard = () => {
         </div>
       </section>
 
-       {/* Atalho de Perfil */}
-       <section className="mb-8">
-        <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-5 shadow-sm relative overflow-hidden group hover:border-[#FF169B]/30 transition-all cursor-pointer" onClick={() => navigate('/usuarios')}>
-          <div className="flex items-start justify-between mb-4">
-             <div className="flex items-center space-x-3">
-               <div className="w-12 h-12 bg-[#FF169B]/10 rounded-full flex items-center justify-center border border-[#FF169B]/20">
-                 <Building2 className="w-6 h-6 text-[#FF169B]" />
-               </div>
-               <div>
-                  <h3 className="text-white font-bold">{bandProfile?.name || 'Configurar Perfil'}</h3>
-                  <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">{bandProfile?.cnpj || 'Sem CNPJ'}</p>
-               </div>
-             </div>
-             <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-[#FF169B] transition-colors" />
-          </div>
-          <div className="flex items-center space-x-2 text-xs text-zinc-500">
-            <MapPin className="w-3.5 h-3.5" />
-            <span className="truncate">{bandProfile?.city || 'Localização não definida'}</span>
-          </div>
-          <div className="absolute top-[-20px] right-[-20px] opacity-[0.03] rotate-12 group-hover:opacity-[0.06] transition-opacity">
-             <Music className="w-40 h-40 text-white" />
-          </div>
-        </div>
-      </section>
-
-      {/* Shows Recentes (Filtrados) */}
-      <section className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white">Shows do Período</h2>
-          <Link to="/eventos" className="text-[#FF169B] text-xs font-bold uppercase tracking-wider hover:opacity-80">Ver Todos</Link>
-        </div>
-
-        <div className="space-y-4">
-          {filteredEvents.length === 0 && (
-            <div className="bg-zinc-900/50 border border-zinc-800 border-dashed rounded-3xl p-8 text-center">
-              <p className="text-zinc-500 text-sm">Nenhum evento encontrado para este filtro.</p>
-            </div>
-          )}
-          {filteredEvents.slice(0, 4).map((event) => (
-            <div 
-              key={event.id}
-              onClick={() => navigate(`/eventos/${event.id}`)}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:bg-zinc-800/50 transition-all cursor-pointer active:scale-95"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-zinc-800 rounded-xl flex flex-col items-center justify-center border border-zinc-700">
-                  <span className="text-[10px] font-bold text-[#FF169B] leading-none uppercase">{(new Date(event.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' })).replace('.', '')}</span>
-                  <span className="text-lg font-bold text-white leading-none">{(event.date.split('-')[2])}</span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white truncate max-w-[140px]">{event.contractorName}</h4>
-                  <div className="flex items-center space-x-2 mt-0.5">
-                    <Clock className="w-3 h-3 text-zinc-500" />
-                    <span className="text-xs text-zinc-500">{event.time || '--:--'}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-emerald-400">{formatCurrency(event.totalValueCents)}</p>
-                <div className="flex items-center justify-end space-x-1 mt-0.5">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${event.status === 'Recebido' ? 'text-emerald-500' : 'text-zinc-500'}`}>{event.status}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 };
