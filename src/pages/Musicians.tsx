@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { UserPlus, Phone, Music, CreditCard, X, Loader2, ChevronRight, Hash, Trash2 } from 'lucide-react';
 import { Musician } from '../data/mocks';
 import * as api from '../services/api';
@@ -87,12 +87,32 @@ export const Musicians = () => {
     }
   };
 
+  const groupedMusicians = useMemo(() => {
+    const groups: { [key: string]: Musician[] } = {};
+    musicians.forEach(m => {
+      const inst = m.instrument || 'Outros';
+      if (!groups[inst]) groups[inst] = [];
+      groups[inst].push(m);
+    });
+    
+    // Sort names within each group
+    Object.keys(groups).forEach(key => {
+      groups[key].sort((a, b) => a.name.localeCompare(b.name));
+    });
+
+    // Sort group keys alphabetically
+    return Object.keys(groups).sort().map(key => ({
+      instrument: key,
+      list: groups[key]
+    }));
+  }, [musicians]);
+
   return (
     <div className="p-6 pb-24">
       <header className="flex justify-between items-center mb-8 px-1">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight">Elenco</h1>
-          <p className="text-zinc-500 font-medium">Equipe técnica e musical ({musicians.length})</p>
+          <p className="text-zinc-500 font-medium">Organizado por função ({musicians.length})</p>
         </div>
         <button 
           onClick={() => openModal()}
@@ -102,8 +122,8 @@ export const Musicians = () => {
         </button>
       </header>
 
-      {/* Simplified Roster List */}
-      <div className="space-y-3">
+      {/* Grouped Roster List */}
+      <div className="space-y-8">
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-[#FF169B] animate-spin mb-3" />
@@ -117,30 +137,39 @@ export const Musicians = () => {
           </div>
         )}
 
-        {!isLoading && musicians.sort((a,b) => a.name.localeCompare(b.name)).map(m => (
-          <div 
-            key={m.id} 
-            onClick={() => openModal(m)}
-            className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between hover:bg-zinc-800/80 active:scale-[0.98] transition-all cursor-pointer group backdrop-blur-sm"
-          >
-            <div className="flex items-center space-x-4">
-               <div className={`w-12 h-12 rounded-xl flex items-center justify-center border font-black text-sm transition-colors ${
-                 m.role === 'Sócio' 
-                   ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' 
-                   : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500'
-               }`}>
-                 {m.name.charAt(0).toUpperCase()}
-               </div>
-               <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-white truncate pr-2 group-hover:text-[#FF169B] transition-colors">{m.name}</h3>
-                  <div className="flex items-center space-x-2 mt-0.5">
-                     <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">{m.instrument}</span>
-                     <span className="w-1 h-1 bg-zinc-800 rounded-full"></span>
-                     <span className={`text-[9px] font-black uppercase tracking-widest ${m.role === 'Sócio' ? 'text-purple-400' : 'text-zinc-600'}`}>{m.role}</span>
-                  </div>
-               </div>
+        {!isLoading && groupedMusicians.map(group => (
+          <div key={group.instrument} className="space-y-3">
+            <div className="flex items-center justify-between px-2 mb-2">
+               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF169B]">{group.instrument}</h2>
+               <span className="text-[9px] font-bold text-zinc-700 bg-zinc-900 px-2 py-0.5 rounded-full">{group.list.length}</span>
             </div>
-            <ChevronRight className="w-4 h-4 text-zinc-800 group-hover:text-zinc-500 transition-colors" />
+            
+            <div className="space-y-2">
+              {group.list.map(m => (
+                <div 
+                  key={m.id} 
+                  onClick={() => openModal(m)}
+                  className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between hover:bg-zinc-800/80 active:scale-[0.98] transition-all cursor-pointer group backdrop-blur-sm"
+                >
+                  <div className="flex items-center space-x-4">
+                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center border font-black text-sm transition-colors ${
+                       m.role === 'Sócio' 
+                         ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' 
+                         : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500'
+                     }`}>
+                       {m.name.charAt(0).toUpperCase()}
+                     </div>
+                     <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-white truncate pr-2 group-hover:text-[#FF169B] transition-colors">{m.name}</h3>
+                        <div className="flex items-center space-x-2 mt-0.5">
+                           <span className={`text-[9px] font-black uppercase tracking-widest ${m.role === 'Sócio' ? 'text-purple-400' : 'text-zinc-600'}`}>{m.role}</span>
+                        </div>
+                     </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-zinc-800 group-hover:text-zinc-500 transition-colors" />
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
