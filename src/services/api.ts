@@ -295,6 +295,21 @@ export const saveBandProfile = async (profile: Partial<BandProfile>) => {
     .single();
   
   if (error) throw error;
+
+  // Logar Atividade
+  try {
+    const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+    await logActivity({
+      userName,
+      action: 'editou',
+      targetType: 'perfil',
+      targetId: '1',
+      description: 'Dados da Banda / Grupo'
+    });
+  } catch (err) {
+    console.error('Erro ao logar atividade do perfil:', err);
+  }
+
   return mapProfileFromDB(data);
 };
 

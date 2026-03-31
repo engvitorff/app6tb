@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency, parseCurrencyInput } from '../utils/currency';
 import { EventShow, IssuedContract } from '../data/mocks';
+import { MapPickerModal } from '../components/MapPickerModal';
 import * as api from '../services/api';
 
 export const Events = () => {
@@ -25,7 +26,9 @@ export const Events = () => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
+  const [locationLink, setLocationLink] = useState('');
   const [value, setValue] = useState('');
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
   // Filtros
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
@@ -117,6 +120,7 @@ export const Events = () => {
         date,
         time,
         location,
+        locationLink,
         totalValueCents: parseCurrencyInput(value),
         status: 'A receber',
         operationalExpensesCents: 0,
@@ -127,7 +131,7 @@ export const Events = () => {
         contractorDiscountCents: 0
       });
 
-      setContractorName(''); setDate(''); setTime(''); setLocation(''); setValue('');
+      setContractorName(''); setDate(''); setTime(''); setLocation(''); setLocationLink(''); setValue('');
       setIsModalOpen(false);
       fetchData();
     } catch (error: any) {
@@ -239,7 +243,7 @@ export const Events = () => {
             
             <form onSubmit={handleAddEvent} className="space-y-6">
               <div>
-                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Contratante</label>
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Contratante / Nome do Evento</label>
                 <input type="text" value={contractorName} onChange={e => setContractorName(e.target.value)} required placeholder="Ex: Casamento João"
                   className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white font-bold focus:ring-2 focus:ring-[#FF169B]/50 focus:outline-none transition-all placeholder:text-zinc-800" />
               </div>
@@ -255,6 +259,22 @@ export const Events = () => {
                     className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white font-bold" />
                 </div>
               </div>
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Local / Endereço Completo</label>
+                <div className="flex space-x-2">
+                  <input type="text" value={location} onChange={e => setLocation(e.target.value)} required placeholder="Ex: Chácara do Zé"
+                    className="flex-1 h-14 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white font-bold placeholder:text-zinc-800" />
+                  <button 
+                    type="button"
+                    onClick={() => setIsMapPickerOpen(true)}
+                    className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center transition-all active:scale-90"
+                    title="Alfinete no Mapa"
+                  >
+                    <MapPin className="w-6 h-6" />
+                  </button>
+                </div>
+                <p className="text-[9px] text-zinc-600 font-bold ml-1 uppercase">Texto de preenchimento livre para o local do show.</p>
+              </div>
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Valor (R$)</label>
                 <input type="text" value={value} onChange={e => setValue(e.target.value)} required placeholder="R$ 0,00"
@@ -264,6 +284,17 @@ export const Events = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {isMapPickerOpen && (
+        <MapPickerModal 
+          onClose={() => setIsMapPickerOpen(false)}
+          onConfirm={(addr, url) => {
+            setLocation(addr || location);
+            setLocationLink(url);
+            setIsMapPickerOpen(false);
+          }}
+        />
       )}
     </div>
   );
