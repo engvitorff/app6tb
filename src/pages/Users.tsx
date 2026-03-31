@@ -151,6 +151,45 @@ export const Users = () => {
           </div>
         </div>
 
+        {/* Seção 4: Dados de Pagamento (PIX / Banco) */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-sm">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-2 bg-blue-500/10 rounded-lg">
+              <CreditCard className="w-5 h-5 text-blue-400" />
+            </div>
+            <h2 className="text-lg font-bold text-white">Dados de Pagamento (Para Contratos)</h2>
+          </div>
+
+          <div className="grid gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 mb-1.5 block">Banco</label>
+                <input type="text" value={profile.bank || ''} onChange={e => handleChange('bank', e.target.value)} placeholder="Ex: Nubank, Inter"
+                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-blue-500 focus:outline-none transition-all" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 mb-1.5 block">Chave PIX</label>
+                <input type="text" value={profile.pix || ''} onChange={e => handleChange('pix', e.target.value)} placeholder="E-mail, CPF ou Telefone"
+                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-blue-500 focus:outline-none transition-all" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 mb-1.5 block">Agência</label>
+                <input type="text" value={profile.agency || ''} onChange={e => handleChange('agency', e.target.value)} placeholder="0001"
+                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-blue-500 focus:outline-none transition-all" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 mb-1.5 block">Conta Corrente</label>
+                <input type="text" value={profile.account || ''} onChange={e => handleChange('account', e.target.value)} placeholder="000.000-0"
+                  className="w-full h-12 bg-zinc-950 border border-zinc-800 rounded-xl px-4 text-white focus:border-blue-500 focus:outline-none transition-all" />
+              </div>
+            </div>
+            <p className="text-[10px] text-zinc-600 font-bold uppercase italic ml-1">* Estes dados serão exibidos no PDF do contrato para recebimento.</p>
+          </div>
+        </div>
+
         <div className="fixed bottom-6 left-6 right-6 z-20 md:relative md:bottom-auto md:left-auto md:right-auto md:px-0">
           <button 
             type="submit" 

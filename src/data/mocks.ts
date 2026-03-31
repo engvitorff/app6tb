@@ -74,27 +74,33 @@ export interface BandProfile {
   repName: string;
   repRg: string;
   repCpf: string;
+  bank?: string;
+  agency?: string;
+  account?: string;
+  pix?: string;
 }
 
 const INITIAL_MUSICIANS: Musician[] = [
-  { id: '1', name: 'Vitor Fernandes', instrument: 'Surdo/Vocal', phone: '(11) 90000-0001', pix: 'vitor@pix.com', role: 'Sócio' },
-  { id: '2', name: 'Josiel Rosa', instrument: 'Pandeiro/Vocal', phone: '(11) 90000-0002', pix: 'josiel@pix.com', role: 'Sócio' },
-  { id: '3', name: 'Bruno Borba', instrument: 'Vocal', phone: '(11) 90000-0003', pix: 'bruno@pix.com', role: 'Sócio' },
-  { id: '4', name: 'Orlando Junior', instrument: 'Tantan/Vocal', phone: '(11) 90000-0004', pix: 'orlando@pix.com', role: 'Sócio' },
+  { id: '1', name: 'Membro 1', instrument: 'Vocal', phone: '(00) 00000-0000', pix: 'perfil1@pix.com', role: 'Sócio' },
+  { id: '2', name: 'Membro 2', instrument: 'Percussão', phone: '(00) 00000-0000', pix: 'perfil2@pix.com', role: 'Sócio' },
 ];
 
 export const getBandProfile = (): BandProfile => {
   const data = localStorage.getItem('pagode_band_profile');
   if (data) return JSON.parse(data);
   return {
-    name: 'Grupo 6 Tá Bom',
-    cnpj: '41.955.002/0001-11',
-    address: 'rua Aleixo Rodrigues de Queiroz, nº468, Jundiaí Industrial',
-    city: 'ANÁPOLIS/GO',
-    cep: '75115-010',
-    repName: 'VÍTOR FERNANDES FERREIRA',
-    repRg: '569692-9',
-    repCpf: '043.552.841-66'
+    name: 'Seu Grupo',
+    cnpj: '',
+    address: '',
+    city: '',
+    cep: '',
+    repName: '',
+    repRg: '',
+    repCpf: '',
+    bank: '',
+    agency: '',
+    account: '',
+    pix: ''
   };
 };
 

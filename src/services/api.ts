@@ -64,6 +64,10 @@ const mapProfileToDB = (p: Partial<BandProfile>) => ({
   rep_name: p.repName,
   rep_rg: p.repRg,
   rep_cpf: p.repCpf,
+  bank: p.bank,
+  agency: p.agency,
+  account: p.account,
+  pix: p.pix,
 });
 
 const mapProfileFromDB = (dbP: any): BandProfile => ({
@@ -75,6 +79,10 @@ const mapProfileFromDB = (dbP: any): BandProfile => ({
   repName: dbP.rep_name,
   repRg: dbP.rep_rg,
   repCpf: dbP.rep_cpf,
+  bank: dbP.bank || '',
+  agency: dbP.agency || '',
+  account: dbP.account || '',
+  pix: dbP.pix || '',
 });
 
 // --- MUSICIAN SERVICES ---
@@ -276,21 +284,30 @@ export const removeMusicianFromSchedule = async (id: string) => {
 
 // --- BAND PROFILE SERVICES ---
 export const getBandProfile = async (): Promise<BandProfile | null> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
   const { data, error } = await supabase
     .from('band_profile')
     .select('*')
-    .eq('id', 1)
-    .single();
+    .eq('user_id', session.user.id)
+    .maybeSingle(); // Usar maybeSingle em vez de single para evitar erro se não houver perfil
   
-  if (error) return null;
+  if (error || !data) return null;
   return mapProfileFromDB(data);
 };
 
 export const saveBandProfile = async (profile: Partial<BandProfile>) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Não autenticado');
+
   const dbPayload = mapProfileToDB(profile);
   const { data, error } = await supabase
     .from('band_profile')
-    .upsert({ ...dbPayload, id: 1 })
+    .upsert({ 
+      ...dbPayload, 
+      user_id: session.user.id 
+    }, { onConflict: 'user_id' }) // Conflito baseado em user_id agora
     .select()
     .single();
   
@@ -303,11 +320,11 @@ export const saveBandProfile = async (profile: Partial<BandProfile>) => {
       userName,
       action: 'editou',
       targetType: 'perfil',
-      targetId: '1',
-      description: 'Dados da Banda / Grupo'
+      targetId: session.user.id,
+      description: 'Dados Pessoais / Cadastro'
     });
   } catch (err) {
-    console.error('Erro ao logar atividade do perfil:', err);
+    console.warn('Erro ao logar perfil:', err);
   }
 
   return mapProfileFromDB(data);

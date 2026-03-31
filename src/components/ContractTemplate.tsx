@@ -61,7 +61,7 @@ export const ContractTemplate: React.FC<Props> = ({ event, band, prefs }) => {
 
         <h2 style={{ fontSize: '11pt', fontWeight: 'bold', marginTop: '20px', marginBottom: '10px' }}>DO PAGAMENTO</h2>
         <p style={{ textIndent: '40px', marginBottom: '10px' }}><strong>Cláusula {nextClause()}ª.</strong> A CONTRATANTE compromete-se a pagar a quantia de <strong>{formatCurrency(event.totalValueCents)}</strong> ao CONTRATADO em contraprestação à apresentação musical.</p>
-        <p style={{ textIndent: '40px' }}><strong>Dados para depósito:</strong> Banco Inter (077) - Ag: 0001 - CC: 3121500-9 - PIX: 043.552.841-66.</p>
+        <p style={{ textIndent: '40px' }}><strong>Dados para depósito:</strong> {band.bank || '—'} - Ag: {band.agency || '—'} - CC: {band.account || '—'} / PIX: {band.pix || '—'}.</p>
 
         {prefs?.useRescisao && (
           <>
