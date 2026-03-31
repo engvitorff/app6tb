@@ -282,19 +282,19 @@ export const Dashboard = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Entradas Brutas</p>
-            <p className="text-lg font-bold text-emerald-400">{formatCurrency(metrics.totalBruto)}</p>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-1">Entradas</p>
+            <p className="text-sm font-bold text-emerald-400 truncate">{formatCurrency(metrics.totalBruto)}</p>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Pagamento Sócios</p>
-            <p className="text-lg font-bold text-purple-400">{formatCurrency(metrics.totalLucroEstimado)}</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-1">Sócios</p>
+            <p className="text-sm font-bold text-purple-400 truncate">{formatCurrency(metrics.totalLucroEstimado)}</p>
           </div>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-          <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Pagamento Freelancers</p>
-          <p className="text-lg font-bold text-amber-500">{formatCurrency(metrics.totalFreela)}</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
+            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-1">Freelas</p>
+            <p className="text-sm font-bold text-amber-500 truncate">{formatCurrency(metrics.totalFreela)}</p>
+          </div>
         </div>
       </section>
 
@@ -305,11 +305,11 @@ export const Dashboard = () => {
              <Users2 className="w-4 h-4 text-[#FF169B]" />
              <span>Divisão de Custos (Filtrado)</span>
            </h3>
-           <div className="h-48 relative">
+           <div className="h-40 relative">
               {pieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
+                    <Pie data={pieData} cx="50%" cy="55%" innerRadius={55} outerRadius={75} paddingAngle={5} dataKey="value" stroke="none">
                       {pieData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Pie>
                     <Tooltip 
@@ -322,22 +322,22 @@ export const Dashboard = () => {
                 <div className="h-full flex items-center justify-center border border-dashed border-zinc-800 rounded-2xl text-zinc-600 text-[10px] uppercase font-bold">Sem dados no período</div>
               )}
            </div>
-           <div className="grid grid-cols-2 gap-2 mt-4">
+           <div className="grid grid-cols-4 gap-1 mt-4">
               {pieData.map((d, i) => (
-                <div key={i} className="flex items-center space-x-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
-                  <span>{d.name}</span>
+                <div key={i} className="flex flex-col items-center justify-center space-y-1 text-[8px] text-zinc-500 font-bold uppercase tracking-widest">
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: d.color }}></div>
+                  <span className="truncate w-full text-center">{d.name}</span>
                 </div>
               ))}
            </div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-sm">
-           <h3 className="text-white font-bold text-sm mb-6 flex items-center space-x-2">
+           <h3 className="text-white font-bold text-sm mb-4 flex items-center space-x-2">
              <Calendar className="w-4 h-4 text-blue-400" />
-             <span>Evolução Financeira</span>
+             <span>Evolução</span>
            </h3>
-           <div className="h-48">
+           <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#52525b', fontSize: 10 }} />
