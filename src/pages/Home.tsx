@@ -82,7 +82,6 @@ export const Home = () => {
     });
   }, [events, filterYear, filterMonth, filterStatus]);
 
-  // --- Lógica do Calendário ---
   const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -114,25 +113,14 @@ export const Home = () => {
     return events.filter(ev => ev.date === dateStr);
   };
 
-  const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-  ];
-
   const calculateGanttPos = (timeStr: string) => {
     if (!timeStr) return 0;
     const [h, m] = timeStr.split(':').map(Number);
     return ((h + m / 60) / 24) * 100;
   };
 
-  const formatDateBRLong = (dateStr: string) => {
-     const [y, m, d] = dateStr.split('-');
-     return `${d}/${m}/${y}`;
-  };
-
   return (
     <div className="p-6 pb-24">
-      {/* Bloco 1: Perfil e Header */}
       <header className="mb-8">
         <div className="flex justify-between items-start mb-6">
           <div>
@@ -144,11 +132,7 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* Card Perfil da Banda */}
-        <div 
-          className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-5 shadow-sm relative overflow-hidden group hover:border-[#FF169B]/30 transition-all cursor-pointer" 
-          onClick={() => navigate('/usuarios')}
-        >
+        <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-5 shadow-sm relative overflow-hidden group hover:border-[#FF169B]/30 transition-all cursor-pointer" onClick={() => navigate('/usuarios')}>
           <div className="flex items-start justify-between mb-4">
              <div className="flex items-center space-x-3">
                <div className="w-12 h-12 bg-[#FF169B]/10 rounded-full flex items-center justify-center border border-[#FF169B]/20">
@@ -156,64 +140,41 @@ export const Home = () => {
                </div>
                <div>
                   <h3 className="text-white font-bold">{bandProfile?.name || 'Grupo 6 Tá Bom'}</h3>
-                  <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">{bandProfile?.cnpj || '41.955.002/0001-11'}</p>
+                  <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">{bandProfile?.cnpj || '41.955.002/0001-11'}</p>
                </div>
              </div>
-             <ChevronRightIcon className="w-5 h-5 text-zinc-700 group-hover:text-[#FF169B] transition-colors" />
+             <ChevronRightIcon className="w-5 h-5 text-zinc-700" />
           </div>
           <div className="flex items-center space-x-2 text-xs text-zinc-500">
             <MapPin className="w-3.5 h-3.5" />
             <span className="truncate">{bandProfile?.city || 'ANÁPOLIS/GO'}</span>
           </div>
-          <div className="absolute top-[-20px] right-[-20px] opacity-[0.03] rotate-12 group-hover:opacity-[0.06] transition-opacity">
-             <Music className="w-40 h-40 text-white" />
-          </div>
         </div>
       </header>
 
-      {/* Barra de Filtros Compacta */}
       <section className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 mb-6 flex space-x-2 backdrop-blur-sm sticky top-4 z-20 overflow-x-auto no-scrollbar">
-        <select 
-          value={filterYear} 
-          onChange={(e) => setFilterYear(e.target.value)}
-          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none min-w-[70px] text-center"
-        >
+        <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-2 py-2 border border-zinc-800">
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
-
-        <select 
-          value={filterMonth} 
-          onChange={(e) => setFilterMonth(e.target.value)}
-          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[100px] text-center"
-        >
+        <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-2 py-2 border border-zinc-800 flex-1">
           {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
-
-        <select 
-          value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[120px] text-center"
-        >
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-2 py-2 border border-zinc-800 flex-1">
           <option value="all">Status: Todos</option>
           <option value="Recebido">Recebidos</option>
           <option value="A receber">Pendentes</option>
         </select>
       </section>
 
-      {/* Calendário de Shows */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4 px-1">
            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
              <CalendarIcon className="w-4 h-4 text-[#FF169B]" />
-             <span>Agenda {monthNames[currentDate.getMonth()]}</span>
+             <span>Agenda {new Date(currentDate).toLocaleString('pt-BR', { month: 'long' })}</span>
            </h3>
            <div className="flex items-center space-x-2">
-              <button onClick={() => changeMonth(-1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button onClick={() => changeMonth(1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <button onClick={() => changeMonth(-1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <button onClick={() => changeMonth(1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"><ChevronRight className="w-4 h-4" /></button>
            </div>
         </div>
 
@@ -229,23 +190,12 @@ export const Home = () => {
                 const dayEvents = getEventsForDay(dateObj.fullDate);
                 const hasEvents = dayEvents.length > 0;
                 const isToday = dateObj.fullDate === new Date().toISOString().split('T')[0];
-                
                 return (
-                  <div 
-                    key={idx} 
-                    onClick={() => dateObj.fullDate && setSelectedDate(dateObj.fullDate)}
-                    className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all relative cursor-pointer active:scale-95 ${
-                      dateObj.day ? 'bg-zinc-950/30 hover:bg-zinc-800/50' : ''
-                    } ${isToday ? 'border border-[#FF169B]' : ''} ${selectedDate === dateObj.fullDate ? 'ring-2 ring-purple-500 bg-purple-500/10' : ''}`}
-                  >
-                    <span className={`text-xs ${dateObj.day ? 'text-zinc-300' : 'text-zinc-800'} ${isToday ? 'text-white font-bold' : ''}`}>
-                      {dateObj.day}
-                    </span>
+                  <div key={idx} onClick={() => dateObj.fullDate && setSelectedDate(dateObj.fullDate)} className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all relative cursor-pointer ${dateObj.day ? 'bg-zinc-950/30 hover:bg-zinc-800/50' : ''} ${isToday ? 'border border-[#FF169B]' : ''} ${selectedDate === dateObj.fullDate ? 'ring-2 ring-purple-500 bg-purple-500/10' : ''}`}>
+                    <span className={`text-xs ${dateObj.day ? 'text-zinc-300' : 'text-zinc-800'} ${isToday ? 'text-white font-bold' : ''}`}>{dateObj.day}</span>
                     {hasEvents && (
-                      <div className="flex flex-wrap items-center justify-center mt-0.5 space-x-0.5">
-                        {dayEvents.map((_, i) => (
-                           <Circle key={i} className={`w-1 h-1 fill-[#FF169B] text-[#FF169B]`} />
-                        ))}
+                      <div className="flex items-center justify-center mt-0.5 space-x-0.5">
+                        {dayEvents.map((_, i) => <Circle key={i} className="w-1 h-1 fill-[#FF169B] text-[#FF169B]" />)}
                       </div>
                     )}
                   </div>
@@ -255,112 +205,84 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* MODAL: Resumo do Dia (Gantt-Style) */}
       {selectedDate && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center items-end md:items-center">
            <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-300">
               <div className="flex justify-between items-center mb-6">
                  <div>
                     <h2 className="text-xl font-bold text-white">Resumo do Dia</h2>
-                    <p className="text-zinc-500 text-xs mt-0.5 font-medium">{formatDateBRLong(selectedDate)}</p>
+                    <p className="text-zinc-500 text-xs mt-0.5 font-medium">{selectedDate.split('-').reverse().join('/')}</p>
                  </div>
-                 <button onClick={() => setSelectedDate(null)} className="text-zinc-400 hover:text-white p-2 bg-zinc-900 rounded-full">
-                    <X className="w-5 h-5" />
-                 </button>
+                 <button onClick={() => setSelectedDate(null)} className="text-zinc-400 hover:text-white p-2 bg-zinc-900 rounded-full"><X className="w-5 h-5" /></button>
               </div>
 
-              {/* Linha do Tempo (Gantt-Style) */}
               <div className="mb-8">
                  <div className="relative h-48 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 overflow-hidden">
                     <div className="flex justify-between absolute bottom-1 left-4 right-4 text-[9px] font-black text-zinc-700 tracking-tighter uppercase">
                        <span>08h</span><span>12h</span><span>16h</span><span>20h</span><span>00h</span><span>04h</span>
                     </div>
-
                     <div className="space-y-4 mt-2 pr-6">
-                       {getEventsForDay(selectedDate).length === 0 ? (
-                         <div className="h-full flex items-center justify-center text-zinc-700 text-[10px] uppercase font-bold tracking-widest py-10 italic">Nenhum show marcado</div>
-                       ) : (
-                         getEventsForDay(selectedDate).sort((a,b) => (a.time || '').localeCompare(b.time || '')).map((ev, i) => {
+                       {getEventsForDay(selectedDate).sort((a,b) => (a.time || '').localeCompare(b.time || '')).map((ev) => {
                             const startPercent = calculateGanttPos(ev.time || '00:00');
-                            const durationPercent = 12.5; // 3h visual representation (3/24 * 100)
-                            
+                            const durationPercent = 12.5; // 3h standard
                             return (
                                <div key={ev.id} className="relative h-12 group" onClick={() => navigate(`/eventos/${ev.id}`)}>
-                                  <div 
-                                    className="absolute h-full bg-gradient-to-br from-[#FF169B] to-purple-600 rounded-2xl flex items-center px-4 shadow-lg shadow-pink-900/10 cursor-pointer overflow-hidden group-hover:scale-[1.02] transition-all border border-white/20"
-                                    style={{ left: `${startPercent}%`, width: `${durationPercent}%`, minWidth: '100px' }}
-                                  >
+                                  <div className="absolute h-full bg-gradient-to-br from-[#FF169B] to-purple-600 rounded-2xl flex items-center px-4 shadow-lg cursor-pointer overflow-hidden group-hover:scale-[1.02] transition-all border border-white/20" style={{ left: `${startPercent}%`, width: `${durationPercent}%`, minWidth: '100px' }}>
                                      <div className="flex flex-col min-w-0">
-                                        <span className="text-[10px] font-black text-white truncate drop-shadow-md leading-tight">{ev.contractorName}</span>
+                                        <span className="text-[10px] font-black text-white truncate leading-tight">{ev.contractorName}</span>
                                         <span className="text-[8px] font-bold text-white/70">{ev.time}</span>
                                      </div>
                                   </div>
                                </div>
                             );
-                         })
-                       )}
+                         })}
                     </div>
                  </div>
-              </div>
-
-              <div className="max-h-40 overflow-y-auto space-y-3 pr-1">
-                 {getEventsForDay(selectedDate).map(ev => (
-                    <div key={ev.id} className="bg-zinc-900 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
-                       <div className="min-w-0">
-                          <p className="text-white text-xs font-bold truncate pr-2">{ev.contractorName}</p>
-                          <div className="flex items-center space-x-2 mt-1">
-                             <Clock className="w-3 h-3 text-zinc-500" />
-                             <span className="text-[10px] text-zinc-400 font-medium">{ev.time || '--:--'}</span>
-                          </div>
-                       </div>
-                       <span className="text-[10px] font-black text-emerald-400 whitespace-nowrap bg-emerald-400/10 px-2 py-1 rounded-md">{formatCurrency(ev.totalValueCents)}</span>
-                    </div>
-                 ))}
               </div>
            </div>
         </div>
       )}
 
-      {/* Bloco 2: Shows do Período */}
       <section className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-white">Shows Filtrados</h2>
-          <Link to="/eventos" className="text-[#FF169B] text-xs font-bold uppercase tracking-wider hover:opacity-80">Ver Todos</Link>
+          <Link to="/eventos" className="text-[#FF169B] text-xs font-bold font-black uppercase tracking-widest">Ver Todos</Link>
         </div>
 
         <div className="space-y-4">
           {filteredEvents.length === 0 && (
-            <div className="bg-zinc-900/50 border border-zinc-800 border-dashed rounded-3xl p-8 text-center text-zinc-500 text-sm italic">
-              Nenhum show encontrado para os filtros selecionados.
-            </div>
+            <div className="bg-zinc-900/50 border border-zinc-800 border-dashed rounded-3xl p-10 text-zinc-500 text-sm text-center italic">Nenhum show encontrado no período.</div>
           )}
-          {filteredEvents.slice(0, 5).map((event) => (
-            <div 
-              key={event.id}
-              onClick={() => navigate(`/eventos/${event.id}`)}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:bg-zinc-800/50 transition-all cursor-pointer active:scale-95 group"
-            >
+          {filteredEvents.slice(0, 5).map((event) => {
+            const evDate = new Date(event.date + 'T12:00:00');
+            const yesterday = new Date();
+            yesterday.setHours(0,0,0,0);
+            const overdue = event.status === 'A receber' && evDate < yesterday;
+
+            return (
+            <div key={event.id} onClick={() => navigate(`/eventos/${event.id}`)} className={`bg-zinc-900 border ${overdue ? 'border-red-500 bg-red-500/10' : 'border-zinc-800'} rounded-2xl p-4 shadow-sm flex items-center justify-between hover:bg-zinc-800/50 active:scale-95 transition-all cursor-pointer group relative overflow-hidden`}>
+              {overdue && (
+                <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-widest shadow-lg z-10 animate-pulse">Atrasado</div>
+              )}
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-zinc-800 rounded-xl flex flex-col items-center justify-center border border-zinc-700 group-hover:border-[#FF169B]/30 transition-colors">
-                  <span className="text-[10px] font-bold text-[#FF169B] leading-none uppercase">{(new Date(event.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' })).replace('.', '')}</span>
-                  <span className="text-lg font-bold text-white leading-none">{(event.date.split('-')[2])}</span>
+                <div className={`w-12 h-12 ${overdue ? 'bg-red-500' : 'bg-zinc-800'} rounded-xl flex flex-col items-center justify-center border ${overdue ? 'border-red-400' : 'border-zinc-700'}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-tighter ${overdue ? 'text-white' : 'text-[#FF4DB8]'} leading-none`}>{(new Date(event.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' })).replace('.', '').toUpperCase()}</span>
+                  <span className={`text-lg font-black leading-none ${overdue ? 'text-white' : 'text-zinc-100'}`}>{event.date.split('-')[2]}</span>
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white truncate max-w-[140px] group-hover:text-[#FF169B] transition-colors">{event.contractorName}</h4>
-                  <div className="flex items-center space-x-2 mt-0.5">
-                    <Clock className="w-3 h-3 text-zinc-500" />
-                    <span className="text-xs text-zinc-500">{event.time || '--:--'}</span>
+                  <h4 className={`text-sm font-bold ${overdue ? 'text-red-100' : 'text-white'} truncate max-w-[140px] group-hover:text-[#FF169B] transition-colors`}>{event.contractorName}</h4>
+                  <div className="flex items-center space-x-2 mt-0.5 text-zinc-500">
+                    <Clock className="w-3 h-3" />
+                    <span className="text-[10px] font-bold">{event.time || '--:--'}</span>
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-emerald-400">{formatCurrency(event.totalValueCents)}</p>
-                <div className="flex items-center justify-end space-x-1 mt-0.5">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${event.status === 'Recebido' ? 'text-emerald-500' : 'text-zinc-500'}`}>{event.status}</span>
-                </div>
+                <p className={`text-sm font-black ${overdue ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(event.totalValueCents)}</p>
+                <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${overdue ? 'text-red-500' : 'text-zinc-500'}`}>{event.status}</p>
               </div>
             </div>
-          ))}
+          );})}
         </div>
       </section>
     </div>
