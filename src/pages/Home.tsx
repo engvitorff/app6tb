@@ -9,7 +9,8 @@ import {
   Building2, 
   Music,
   ChevronRight as ChevronRightIcon,
-  Circle
+  Circle,
+  X
 } from 'lucide-react';
 import * as api from '../services/api';
 import { EventShow } from '../data/mocks';
@@ -20,6 +21,7 @@ export const Home = () => {
   const [events, setEvents] = useState<EventShow[]>([]);
   const [bandProfile, setBandProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   
   // Calendário State
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -55,11 +57,9 @@ export const Home = () => {
     const firstDay = firstDayOfMonth(year, month);
     
     const days = [];
-    // Dias vazios no início
     for (let i = 0; i < firstDay; i++) {
       days.push({ day: null, fullDate: null });
     }
-    // Dias do mês
     for (let i = 1; i <= totalDays; i++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       days.push({ day: i, fullDate: dateStr });
@@ -83,6 +83,18 @@ export const Home = () => {
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
+  // Helper para calcular posição do Gantt (0-23h)
+  const calculateGanttPos = (timeStr: string) => {
+    if (!timeStr) return 0;
+    const [h, m] = timeStr.split(':').map(Number);
+    return ((h + m / 60) / 24) * 100;
+  };
+
+  const formatDateBRLong = (dateStr: string) => {
+     const [y, m, d] = dateStr.split('-');
+     return `${d}/${m}/${y}`;
+  };
+
   return (
     <div className="p-6 pb-24">
       {/* Bloco 1: Perfil e Header */}
@@ -97,7 +109,7 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* Card Perfil da Banda (Original Bloco 1) */}
+        {/* Card Perfil da Banda */}
         <div 
           className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-5 shadow-sm relative overflow-hidden group hover:border-[#FF169B]/30 transition-all cursor-pointer" 
           onClick={() => navigate('/usuarios')}
@@ -132,30 +144,22 @@ export const Home = () => {
              <span>Agenda {monthNames[currentDate.getMonth()]}</span>
            </h3>
            <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => changeMonth(-1)}
-                className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
-              >
+              <button onClick={() => changeMonth(-1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <button 
-                onClick={() => changeMonth(1)}
-                className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors"
-              >
+              <button onClick={() => changeMonth(1)} className="p-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-colors">
                 <ChevronRight className="w-4 h-4" />
               </button>
            </div>
         </div>
 
         <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-4 backdrop-blur-sm shadow-xl">
-           {/* Grid Dias da Semana */}
            <div className="grid grid-cols-7 mb-2">
               {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map(d => (
                 <div key={d} className="text-center text-[10px] font-bold text-zinc-600 py-2">{d}</div>
               ))}
            </div>
            
-           {/* Grid Dias do Mês */}
            <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((dateObj, idx) => {
                 const dayEvents = getEventsForDay(dateObj.fullDate);
@@ -165,9 +169,10 @@ export const Home = () => {
                 return (
                   <div 
                     key={idx} 
-                    className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all relative ${
-                      dateObj.day ? 'bg-zinc-950/30' : ''
-                    } ${isToday ? 'border border-[#FF169B]/50' : ''}`}
+                    onClick={() => dateObj.fullDate && setSelectedDate(dateObj.fullDate)}
+                    className={`aspect-square flex flex-col items-center justify-center rounded-xl transition-all relative cursor-pointer active:scale-95 ${
+                      dateObj.day ? 'bg-zinc-950/30 hover:bg-zinc-800/50' : ''
+                    } ${isToday ? 'border border-[#FF169B]' : ''} ${selectedDate === dateObj.fullDate ? 'ring-2 ring-purple-500 bg-purple-500/10' : ''}`}
                   >
                     <span className={`text-xs ${dateObj.day ? 'text-zinc-300' : 'text-zinc-800'} ${isToday ? 'text-white font-bold' : ''}`}>
                       {dateObj.day}
@@ -185,6 +190,77 @@ export const Home = () => {
            </div>
         </div>
       </section>
+
+      {/* MODAL: Resumo do Dia (Gantt-Style) */}
+      {selectedDate && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center items-end md:items-center">
+           <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-300">
+              <div className="flex justify-between items-center mb-6">
+                 <div>
+                    <h2 className="text-xl font-bold text-white">Resumo do Dia</h2>
+                    <p className="text-zinc-500 text-xs mt-0.5 font-medium">{formatDateBRLong(selectedDate)}</p>
+                 </div>
+                 <button onClick={() => setSelectedDate(null)} className="text-zinc-400 hover:text-white p-2 bg-zinc-900 rounded-full">
+                    <X className="w-5 h-5" />
+                 </button>
+              </div>
+
+              {/* Linha do Tempo (Gantt-Style) */}
+              <div className="mb-8">
+                 <div className="relative h-48 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 overflow-hidden">
+                    {/* Eixo de Tempo (Labels) */}
+                    <div className="flex justify-between absolute bottom-1 left-4 right-4 text-[9px] font-black text-zinc-700 tracking-tighter uppercase">
+                       <span>08h</span><span>12h</span><span>16h</span><span>20h</span><span>00h</span><span>04h</span>
+                    </div>
+
+                    {/* Linha de Referência de Hora Atual (se for hoje) */}
+                    {selectedDate === new Date().toISOString().split('T')[0] && (
+                       <div className="absolute top-0 bottom-6 w-[1px] bg-white/20 z-10" style={{ left: `${calculateGanttPos(new Date().getHours() + ":" + new Date().getMinutes())}%` }}></div>
+                    )}
+
+                    {/* Gráfico de Barras - Cada show é uma linha */}
+                    <div className="space-y-3 mt-2 pr-6">
+                       {getEventsForDay(selectedDate).length === 0 ? (
+                         <div className="h-full flex items-center justify-center text-zinc-700 text-[10px] uppercase font-bold tracking-widest py-10 italic">Nenhum show marcado</div>
+                       ) : (
+                         getEventsForDay(selectedDate).sort((a,b) => (a.time || '').localeCompare(b.time || '')).map((ev, i) => {
+                            const startPercent = calculateGanttPos(ev.time || '00:00');
+                            const durationPercent = 16; // Assumindo show de 4h para visualização (4/24 * 100)
+                            
+                            return (
+                               <div key={ev.id} className="relative h-10 group" onClick={() => navigate(`/eventos/${ev.id}`)}>
+                                  <div 
+                                    className="absolute h-full bg-gradient-to-r from-[#FF169B] to-purple-600 rounded-xl flex items-center px-3 shadow-lg shadow-pink-900/10 cursor-pointer overflow-hidden group-hover:opacity-90 transition-all border border-white/10"
+                                    style={{ left: `${startPercent}%`, width: `${durationPercent}%` }}
+                                  >
+                                     <span className="text-[10px] font-black text-white truncate drop-shadow-md">{ev.contractorName}</span>
+                                  </div>
+                               </div>
+                            );
+                         })
+                       )}
+                    </div>
+                 </div>
+              </div>
+
+              {/* Lista Detalhada */}
+              <div className="max-h-40 overflow-y-auto space-y-3 pr-1">
+                 {getEventsForDay(selectedDate).map(ev => (
+                    <div key={ev.id} className="bg-zinc-900 p-3 rounded-xl border border-zinc-800 flex justify-between items-center">
+                       <div className="min-w-0">
+                          <p className="text-white text-xs font-bold truncate pr-2">{ev.contractorName}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                             <Clock className="w-3 h-3 text-zinc-500" />
+                             <span className="text-[10px] text-zinc-400 font-medium">{ev.time || '--:--'}</span>
+                          </div>
+                       </div>
+                       <span className="text-[10px] font-black text-emerald-400 whitespace-nowrap bg-emerald-400/10 px-2 py-1 rounded-md">{formatCurrency(ev.totalValueCents)}</span>
+                    </div>
+                 ))}
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Bloco 2: Shows do Período */}
       <section className="mb-8">
