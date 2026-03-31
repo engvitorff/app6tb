@@ -308,7 +308,10 @@ export const Dashboard = () => {
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
                       {pieData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px' }} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px' }} 
+                      formatter={(value: any) => [formatCurrency(Number(value) || 0), 'Valor']}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -334,7 +337,10 @@ export const Dashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#52525b', fontSize: 10 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px' }} 
+                    formatter={(value: any) => [formatCurrency(Number(value) || 0)]}
+                  />
                   <Bar dataKey="receitas" fill="#10b981" radius={[4, 4, 0, 0]} barSize={10} />
                   <Bar dataKey="despesas" fill="#f43f5e" radius={[4, 4, 0, 0]} barSize={10} />
                 </BarChart>
@@ -403,7 +409,7 @@ export const Dashboard = () => {
               <div className="text-right">
                 <p className="text-sm font-bold text-emerald-400">{formatCurrency(event.totalValueCents)}</p>
                 <div className="flex items-center justify-end space-x-1 mt-0.5">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${event.status === 'Pago' ? 'text-emerald-500' : 'text-zinc-500'}`}>{event.status}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${event.status === 'Recebido' ? 'text-emerald-500' : 'text-zinc-500'}`}>{event.status}</span>
                 </div>
               </div>
             </div>
