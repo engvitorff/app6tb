@@ -13,7 +13,7 @@ export const AppLayout = () => {
     { name: 'Início', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Músicos', path: '/musicos', icon: UsersIcon },
     { name: 'Eventos', path: '/eventos', icon: Calendar },
-    { name: 'Caixa', path: '/cashflow', icon: Wallet },
+    { name: 'Financeiro', path: '/cashflow', icon: Wallet },
     { name: 'Contratos', path: '/contracts', icon: FileText },
   ];
 

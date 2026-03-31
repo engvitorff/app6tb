@@ -234,8 +234,8 @@ export const Dashboard = () => {
           <div className="bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-3xl p-5 shadow-lg shadow-indigo-900/20 relative overflow-hidden group">
             <PiggyBank className="absolute -right-4 -bottom-4 w-20 h-20 text-white opacity-10 group-hover:scale-110 transition-transform" />
             <p className="text-indigo-100 text-[10px] font-bold uppercase tracking-wider mb-0.5">Caixa da Banda</p>
-            <h2 className="text-2xl font-black text-white">{formatCurrency(metrics.totalCaixinha)}</h2>
-            <span className="text-[9px] text-indigo-200 mt-1 block">Saldo Previsto</span>
+            <h2 className="text-2xl font-black text-white">{formatCurrency(0)}</h2>
+            <span className="text-[9px] text-indigo-200 mt-1 block">(Aguardando API)</span>
           </div>
         </div>
       </section>
@@ -261,7 +261,7 @@ export const Dashboard = () => {
           <div className="grid grid-cols-2 gap-4 border-t border-zinc-800/50 pt-4">
              <div>
                 <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">M. Pago Real</p>
-                <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(metrics.totalCaixinha)}</p>
+                <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(0)}</p>
              </div>
              <div className="text-right">
                 <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest mb-1">Caixa Previsto App</p>
