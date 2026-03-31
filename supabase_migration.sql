@@ -77,6 +77,18 @@ CREATE TABLE IF NOT EXISTS issued_contracts (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 6. TABELA: Logs de Atividade
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_name TEXT,
+  action TEXT NOT NULL,
+  target_type TEXT,
+  target_id TEXT,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ============================================================
 -- SEGURANÇA: Row Level Security (RLS)
 -- Permite que usuários autenticados leiam e escrevam seus dados
@@ -103,6 +115,11 @@ CREATE POLICY "Authenticated users can do everything on band_profile"
 
 CREATE POLICY "Authenticated users can do everything on issued_contracts"
   ON issued_contracts FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Authenticated users can do everything on activity_logs"
+  ON activity_logs FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- ============================================================
 -- DADOS INICIAIS: Sócios da Banda (Opcional - Pode remover se quiser banco limpo)

@@ -38,8 +38,8 @@ export const Contracts = () => {
   const handleClearAll = async () => {
     if (confirm('Deseja apagar TODO o histórico de contratos emitidos (Nuvem)?')) {
       try {
-        // Deleta cada contrato do Supabase
-        await Promise.all(contracts.map(c => api.deleteIssuedContract(c.eventId)));
+        // Deleta cada contrato do Supabase pelo ID do contrato
+        await Promise.all(contracts.map(c => api.deleteIssuedContract(c.id)));
         setContracts([]);
       } catch (error: any) {
         console.error('Erro ao limpar contratos:', error);
@@ -48,10 +48,10 @@ export const Contracts = () => {
     }
   };
 
-  const handleDeleteOne = async (eventId: string, sequence: number) => {
+  const handleDeleteOne = async (contractId: string, sequence: number) => {
     if (confirm(`Excluir o contrato #${sequence.toString().padStart(3, '0')} definitivamente (Nuvem)?`)) {
       try {
-        await api.deleteIssuedContract(eventId);
+        await api.deleteIssuedContract(contractId);
         fetchContracts();
       } catch (error: any) {
         console.error('Erro ao excluir contrato:', error);
@@ -212,7 +212,7 @@ export const Contracts = () => {
               </button>
               
               <button
-                onClick={() => handleDeleteOne(contract.eventId, contract.sequenceNumber)}
+                onClick={() => handleDeleteOne(contract.id, contract.sequenceNumber)}
                 className="w-10 flex items-center justify-center h-8 bg-red-500/5 text-red-500/40 hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-all"
                 title="Excluir"
               >

@@ -376,7 +376,17 @@ export const saveIssuedContract = async (contract: Partial<IssuedContract>) => {
   return data;
 };
 
-export const deleteIssuedContract = async (eventId: string) => {
+export const deleteIssuedContract = async (contractId: string) => {
+  const { error } = await supabase
+    .from('issued_contracts')
+    .delete()
+    .eq('id', contractId);
+  
+  if (error) throw error;
+};
+
+export const deleteIssuedContractByEventId = async (eventId: string) => {
+  if (!eventId) return;
   const { error } = await supabase
     .from('issued_contracts')
     .delete()
