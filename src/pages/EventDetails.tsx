@@ -563,18 +563,16 @@ export const EventDetails = () => {
               <span className="text-xs font-black uppercase tracking-widest">Gerar Cobrança PIX</span>
             </button>
 
-            {/* NEW: PAY FREELANCERS BUTTON */}
-            {event.scheduledMusicians.some(sm => allMusicians.find(m => m.id === sm.musicianId)?.role === 'Freelancer' && sm.paymentStatus === 'Pendente') && (
-              <button
-                onClick={() => setIsPayFreelancersModalOpen(true)}
-                className="w-full h-14 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group"
-              >
-                <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Clock className="w-5 h-5 text-amber-400" />
-                </div>
-                <span className="text-xs font-black uppercase tracking-widest">Pagar Freelancers</span>
-              </button>
-            )}
+            {/* PAY FREELANCERS BUTTON - ALWAYS VISIBLE TO BE ACCESSIBLE */}
+            <button
+              onClick={() => setIsPayFreelancersModalOpen(true)}
+              className="w-full h-14 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group"
+            >
+              <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Clock className="w-5 h-5 text-amber-400" />
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest">Pagar Freelancers</span>
+            </button>
           </div>
         )}
 
