@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { UserPlus, Phone, Music, CreditCard, X, Loader2, ChevronRight, Hash, Trash2 } from 'lucide-react';
+import { formatPhone, formatPix } from '../utils/masks';
 import { Musician } from '../data/mocks';
 import * as api from '../services/api';
 
@@ -190,7 +191,7 @@ export const Musicians = () => {
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Telefone / WhatsApp</label>
                 <div className="relative">
                   <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
-                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(00) 00000-0000"
+                  <input type="tel" value={formatPhone(phone)} onChange={e => setPhone(e.target.value)} required placeholder="(00) 00000-0000"
                     className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl pl-12 pr-5 text-white focus:outline-none transition-all font-bold" />
                 </div>
               </div>
@@ -199,7 +200,7 @@ export const Musicians = () => {
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Chave PIX</label>
                 <div className="relative">
                   <CreditCard className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
-                  <input type="text" value={pix} onChange={e => setPix(e.target.value)} required placeholder="CPF ou Email"
+                  <input type="text" value={formatPix(pix)} onChange={e => setPix(e.target.value)} required placeholder="CPF, Email ou Celular"
                     className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl pl-12 pr-5 text-white focus:outline-none transition-all font-bold" />
                 </div>
               </div>
