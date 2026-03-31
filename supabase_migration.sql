@@ -44,22 +44,23 @@ CREATE TABLE IF NOT EXISTS scheduled_musicians (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. TABELA: Perfil da Banda
--- Se já existir, adicionamos as colunas que podem estar faltando
+-- 4. TABELA: Perfil da Banda (Isolado por Usuário)
 CREATE TABLE IF NOT EXISTS band_profile (
-  id INTEGER PRIMARY KEY DEFAULT 1,
-  name TEXT NOT NULL DEFAULT 'Grupo 6 Tá Bom',
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL DEFAULT 'Seu Grupo',
   cnpj TEXT,
   address TEXT,
   city TEXT,
   cep TEXT,
+  rep_name TEXT,
+  rep_rg TEXT,
+  rep_cpf TEXT,
+  bank TEXT,
+  agency TEXT,
+  account TEXT,
+  pix TEXT,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Adiciona colunas extras (ignora se já existirem)
-ALTER TABLE band_profile ADD COLUMN IF NOT EXISTS rep_name TEXT;
-ALTER TABLE band_profile ADD COLUMN IF NOT EXISTS rep_rg TEXT;
-ALTER TABLE band_profile ADD COLUMN IF NOT EXISTS rep_cpf TEXT;
 
 -- 5. TABELA: Contratos Emitidos
 CREATE TABLE IF NOT EXISTS issued_contracts (
@@ -104,27 +105,10 @@ CREATE POLICY "Authenticated users can do everything on issued_contracts"
   ON issued_contracts FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- ============================================================
--- DADOS INICIAIS: Sócios da Banda
+-- DADOS INICIAIS: Sócios da Banda (Opcional - Pode remover se quiser banco limpo)
 -- ============================================================
 INSERT INTO musicians (name, instrument, phone, pix, role)
 VALUES
-  ('Vitor Fernandes', 'Surdo/Vocal', '(11) 90000-0001', 'vitor@pix.com', 'Sócio'),
-  ('Josiel Rosa', 'Pandeiro/Vocal', '(11) 90000-0002', 'josiel@pix.com', 'Sócio'),
-  ('Bruno Borba', 'Vocal', '(11) 90000-0003', 'bruno@pix.com', 'Sócio'),
-  ('Orlando Junior', 'Tantan/Vocal', '(11) 90000-0004', 'orlando@pix.com', 'Sócio')
+  ('Sócio 1', 'Instrumento', '(00) 00000-0000', 'pix1@exemplo.com', 'Sócio'),
+  ('Sócio 2', 'Instrumento', '(00) 00000-0000', 'pix2@exemplo.com', 'Sócio')
 ON CONFLICT DO NOTHING;
-
--- Perfil inicial da banda
-INSERT INTO band_profile (id, name, cnpj, address, city, cep, rep_name, rep_rg, rep_cpf)
-VALUES (
-  1,
-  'Grupo 6 Tá Bom',
-  '41.955.002/0001-11',
-  'rua Aleixo Rodrigues de Queiroz, nº468, Jundiaí Industrial',
-  'ANÁPOLIS/GO',
-  '75115-010',
-  'VÍTOR FERNANDES FERREIRA',
-  '569692-9',
-  '043.552.841-66'
-)
-ON CONFLICT (id) DO NOTHING;
