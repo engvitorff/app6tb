@@ -105,6 +105,15 @@ export const Events = () => {
   const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // 0. Verificar Sobreposição (3h)
+      const overlap = await api.checkEventOverlap(date, time);
+      if (overlap) {
+        const proceed = window.confirm(
+          `ALERTA DE CONFLITO!\n\nEste show (${time} às ${new Date(new Date(date + 'T' + time).getTime() + 3 * 3600000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}) sobrepõe o show de "${overlap.contractorName}" (${overlap.time}).\n\nDeseja agendar mesmo assim?`
+        );
+        if (!proceed) return;
+      }
+
       await api.createEvent({
         contractorName,
         date,
@@ -131,7 +140,6 @@ export const Events = () => {
 
   return (
     <div className="p-6 pb-24">
-      {/* Header */}
       <div className="flex justify-between items-center mb-8 px-1">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight">Eventos</h1>
@@ -145,121 +153,73 @@ export const Events = () => {
         </button>
       </div>
 
-      {/* Barra de Filtros Compacta */}
       <section className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 mb-6 flex space-x-2 backdrop-blur-sm sticky top-4 z-20 overflow-x-auto no-scrollbar">
-        <select 
-          value={filterYear} 
-          onChange={(e) => setFilterYear(e.target.value)}
-          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none min-w-[70px] text-center"
-        >
+        <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-3 py-2 border border-zinc-800">
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
-
-        <select 
-          value={filterMonth} 
-          onChange={(e) => setFilterMonth(e.target.value)}
-          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[100px] text-center"
-        >
+        <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-3 py-2 border border-zinc-800 flex-1">
           {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
         </select>
-
-        <select 
-          value={filterStatus} 
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="bg-zinc-950/50 text-white text-[10px] font-black uppercase tracking-widest rounded-xl px-3 py-2 border border-zinc-800 focus:outline-none appearance-none flex-1 min-w-[120px] text-center"
-        >
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-zinc-950/50 text-white text-[10px] font-black uppercase rounded-xl px-3 py-2 border border-zinc-800 flex-1">
           <option value="all">Status: Todos</option>
           <option value="Recebido">Recebidos</option>
           <option value="A receber">Pendentes</option>
         </select>
       </section>
 
-      {/* Events List */}
       <div className="space-y-4">
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+          <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-[#FF169B] animate-spin mb-3" />
-            <p className="text-zinc-500 text-sm font-medium tracking-widest uppercase">Buscando shows...</p>
+            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">Buscando shows...</p>
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-6 text-center">
-            <p className="text-red-400 text-sm font-bold mb-1">Ops! Algo deu errado.</p>
-            <p className="text-red-300/60 text-xs">{error}</p>
-            <button onClick={fetchData} className="mt-4 px-4 py-2 bg-red-500/20 text-red-300 rounded-xl text-xs font-bold hover:bg-red-500/30 transition-all">Tentar novamente</button>
-          </div>
-        )}
-
-        {!isLoading && !error && filteredEvents.length === 0 && (
+        {!isLoading && filteredEvents.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-            <div className="w-16 h-16 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-4 text-zinc-700">
-               <CalendarIcon className="w-8 h-8" />
-            </div>
-            <p className="text-zinc-500 text-sm font-medium">Nenhum show encontrado para esses filtros.</p>
-            <button onClick={() => setIsModalOpen(true)} className="mt-4 text-[#FF169B] text-xs font-black uppercase tracking-widest hover:opacity-80">Agendar Agora</button>
+            <p className="text-zinc-500 text-sm font-medium italic">Nenhum show encontrado.</p>
           </div>
         )}
 
         {!isLoading && filteredEvents.map(ev => {
           const overdue = isOverdue(ev.date, ev.status);
-          
           return (
-          <div 
-            key={ev.id} 
-            onClick={() => navigate(`/eventos/${ev.id}`)}
-            className={`bg-zinc-900 border ${overdue ? 'border-red-500/50 bg-red-500/5' : 'border-zinc-800'} rounded-2xl p-3.5 flex flex-col hover:bg-zinc-800/50 active:scale-98 transition-all cursor-pointer group relative overflow-hidden`}
-          >
-            {/* Linha Topo: Status e Data */}
-            <div className="flex justify-between items-center mb-3">
-               <div className="flex items-center space-x-2">
-                 <div className={`w-10 h-10 ${overdue ? 'bg-red-500/20 border-red-500/30' : 'bg-zinc-800 border-zinc-700'} rounded-lg flex flex-col items-center justify-center border transition-colors`}>
-                    <span className={`text-[8px] font-black uppercase tracking-tighter ${overdue ? 'text-red-400' : 'text-[#FF169B]'}`}>
-                      {new Date(ev.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}
-                    </span>
-                    <span className="text-sm font-black text-white leading-tight">
-                      {ev.date.split('-')[2]}
-                    </span>
-                 </div>
-                 <div>
-                    <h3 className={`text-sm font-bold ${overdue ? 'text-red-300' : 'text-white'} truncate max-w-[140px] leading-tight group-hover:text-[#FF169B] transition-colors`}>
-                      {ev.contractorName}
-                    </h3>
-                    <div className="flex items-center space-x-2 text-zinc-500">
-                       <ClockIcon className="w-3 h-3" />
-                       <span className="text-[10px] font-bold">{ev.time || '--:--'}</span>
-                    </div>
-                 </div>
-               </div>
-
-               <div className="text-right">
-                  <p className={`text-sm font-black ${overdue ? 'text-red-400' : 'text-emerald-400'}`}>{formatCurrency(ev.totalValueCents)}</p>
-                  <p className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${ev.status === 'Recebido' ? 'text-emerald-500/50' : overdue ? 'text-red-500' : 'text-zinc-600'}`}>
-                    {ev.status}
-                  </p>
-               </div>
+            <div 
+              key={ev.id} 
+              onClick={() => navigate(`/eventos/${ev.id}`)}
+              className={`bg-zinc-900 border ${overdue ? 'border-red-500/50 bg-red-500/5' : 'border-zinc-800'} rounded-2xl p-4 flex flex-col hover:bg-zinc-800/50 active:scale-98 transition-all cursor-pointer group`}
+            >
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 ${overdue ? 'bg-red-500/20' : 'bg-zinc-800'} rounded-lg flex flex-col items-center justify-center border border-zinc-700`}>
+                    <span className="text-[8px] font-black uppercase text-[#FF169B]">{new Date(ev.date + 'T12:00:00').toLocaleString('pt-BR', { month: 'short' }).replace('.', '')}</span>
+                    <span className="text-sm font-black text-white">{ev.date.split('-')[2]}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white truncate max-w-[140px] group-hover:text-[#FF169B] transition-colors">{ev.contractorName}</h3>
+                    <span className="text-[10px] text-zinc-500 font-bold">{ev.time || '--:--'}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-black text-emerald-400">{formatCurrency(ev.totalValueCents)}</p>
+                  <p className={`text-[8px] font-black uppercase ${ev.status === 'Recebido' ? 'text-emerald-500/50' : 'text-zinc-600'}`}>{ev.status}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-1 pt-2 border-t border-zinc-800/50">
+                <MapPin className="w-3 h-3 text-zinc-600" />
+                <span className="text-[10px] text-zinc-500 truncate">{ev.location}</span>
+              </div>
             </div>
-
-            {/* Linha Bottom: Info Geográfica (Compacto) */}
-            <div className="flex items-center space-x-3 pt-2 border-t border-zinc-800/50">
-               <div className="flex items-center space-x-1 min-w-0">
-                  <MapPin className="w-3 h-3 text-zinc-600 flex-shrink-0" />
-                  <span className="text-[10px] text-zinc-500 truncate">{ev.location}</span>
-               </div>
-            </div>
-          </div>
-        );
-      })}
-
+          );
+        })}
       </div>
 
-      {/* MODAL: Adicionar Show */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center items-end md:items-center">
           <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-md rounded-t-[40px] md:rounded-[40px] p-8 shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-300 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-black text-white tracking-tight">Novo Show</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white p-2 bg-zinc-900 rounded-full transition-colors">
+              <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white p-2 bg-zinc-900 rounded-full">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -267,32 +227,28 @@ export const Events = () => {
             <form onSubmit={handleAddEvent} className="space-y-6">
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Contratante</label>
-                <input type="text" value={contractorName} onChange={e => setContractorName(e.target.value)} required placeholder="Ex: Aniversário da Lana"
-                  className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white focus:ring-2 focus:ring-[#FF169B]/50 focus:outline-none transition-all placeholder:text-zinc-700" />
+                <input type="text" value={contractorName} onChange={e => setContractorName(e.target.value)} required 
+                  className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white focus:outline-none" />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Data</label>
                   <input type="date" value={date} onChange={e => setDate(e.target.value)} required
-                    className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white focus:ring-2 focus:ring-[#FF169B]/50 focus:outline-none transition-all" />
+                    className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white" />
                 </div>
                 <div>
                   <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Horário</label>
                   <input type="time" value={time} onChange={e => setTime(e.target.value)} required
-                    className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white focus:ring-2 focus:ring-[#FF169B]/50 focus:outline-none transition-all" />
+                    className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white" />
                 </div>
               </div>
-
               <div>
                 <label className="text-[10px] uppercase font-black text-zinc-600 tracking-widest ml-1">Valor (R$)</label>
                 <input type="text" value={value} onChange={e => setValue(e.target.value)} required placeholder="R$ 0,00"
-                  className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white focus:ring-2 focus:ring-[#FF169B]/50 focus:outline-none transition-all placeholder:text-zinc-700" />
+                  className="w-full h-14 mt-1 bg-zinc-900 border border-zinc-800 rounded-2xl px-5 text-white" />
               </div>
-
-              <button type="submit" className="w-full h-16 bg-gradient-to-r from-[#FF169B] to-purple-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-pink-900/20 hover:opacity-90 active:scale-[0.97] transition-all flex items-center justify-center space-x-2">
-                <CalendarPlus className="w-5 h-5" />
-                <span>Agendar Show</span>
+              <button type="submit" className="w-full h-16 bg-gradient-to-r from-[#FF169B] to-purple-600 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-pink-900/20 active:scale-[0.97] transition-all">
+                Agendar Show
               </button>
             </form>
           </div>

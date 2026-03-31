@@ -139,6 +139,20 @@ export const createEvent = async (event: Partial<EventShow>) => {
 
   console.log('Evento criado com sucesso:', newEvent);
 
+  // 3. Logar Atividade
+  try {
+    const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+    await logActivity({
+      userName,
+      action: 'criou',
+      targetType: 'evento',
+      targetId: newEvent.id,
+      description: newEvent.contractor_name
+    });
+  } catch (err) {
+    console.error('Erro ao logar atividade de criação:', err);
+  }
+
   // 2. Escalar AUTOMATICAMENTE os 4 sócios
   try {
     const musicians = await getMusicians();
@@ -182,16 +196,45 @@ export const updateEvent = async (event: Partial<EventShow>) => {
     .single();
   
   if (error) throw error;
+
+  // Logar Atividade
+  try {
+    const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+    await logActivity({
+      userName,
+      action: 'editou',
+      targetType: 'evento',
+      targetId: event.id,
+      description: data.contractor_name
+    });
+  } catch (err) {
+    console.error('Erro ao logar atividade de edição:', err);
+  }
+
   return mapEventFromDB(data);
 };
 
-export const deleteEvent = async (id: string) => {
+export const deleteEvent = async (id: string, name?: string) => {
   const { error } = await supabase
     .from('events')
     .delete()
     .eq('id', id);
   
   if (error) throw error;
+
+  // Logar Atividade
+  try {
+    const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+    await logActivity({
+      userName,
+      action: 'excluiu',
+      targetType: 'evento',
+      targetId: id,
+      description: name || 'Evento removido'
+    });
+  } catch (err) {
+    console.error('Erro ao logar atividade de exclusão:', err);
+  }
 };
 
 // --- SCHEDULE SERVICES ---
@@ -317,4 +360,72 @@ export const getNextContractSequence = async (): Promise<number> => {
   
   if (error) return 1;
   return data && data.length > 0 ? (data[0] as any).sequence_number + 1 : 1;
+};
+
+// --- ACTIVITY LOGS SERVICES ---
+export interface ActivityLog {
+  id?: string;
+  userName: string;
+  action: 'criou' | 'editou' | 'excluiu' | 'pagou';
+  targetType: string;
+  targetId: string;
+  description: string;
+  createdAt?: string;
+}
+
+export const logActivity = async (activity: Partial<ActivityLog>) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const dbPayload = {
+    user_id: user?.id,
+    user_name: activity.userName,
+    action: activity.action,
+    target_type: activity.targetType,
+    target_id: activity.targetId,
+    description: activity.description,
+  };
+
+  const { error } = await supabase.from('activity_logs').insert(dbPayload);
+  if (error) {
+    // Se a tabela ainda não existir no Supabase, falhamos silenciosamente para não quebrar o app
+    console.warn('Erro ao inserir log (provavelmente tabela activity_logs não existe):', error);
+  }
+};
+
+export const getActivities = async (): Promise<ActivityLog[]> => {
+  const { data, error } = await supabase
+    .from('activity_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(20);
+  
+  if (error) return [];
+  return (data || []).map(d => ({
+    id: d.id,
+    userName: d.user_name,
+    action: d.action,
+    targetType: d.target_type,
+    targetId: d.target_id,
+    description: d.description,
+    createdAt: d.created_at
+  }));
+};
+
+// --- UTILS: TIME / OVERLAP ---
+export const checkEventOverlap = async (date: string, time: string, excludeId?: string): Promise<EventShow | null> => {
+  const events = await getEvents();
+  const newStart = new Date(`${date}T${time}:00`);
+  const newEnd = new Date(newStart.getTime() + 3 * 60 * 60 * 1000); // +3h
+
+  for (const ev of events) {
+    if (ev.date === date && ev.id !== excludeId) {
+      const evStart = new Date(`${ev.date}T${ev.time || '00:00'}:00`);
+      const evEnd = new Date(evStart.getTime() + 3 * 60 * 60 * 1000); // 3h padrão
+
+      // Overlap logic: (Start1 < End2) and (End1 > Start2)
+      if (newStart < evEnd && newEnd > evStart) {
+        return ev;
+      }
+    }
+  }
+  return null;
 };

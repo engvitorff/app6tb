@@ -282,7 +282,7 @@ export const Home = () => {
                        ) : (
                          getEventsForDay(selectedDate).sort((a,b) => (a.time || '').localeCompare(b.time || '')).map((ev, i) => {
                             const startPercent = calculateGanttPos(ev.time || '00:00');
-                            const durationPercent = 25; // 6h visual representation
+                            const durationPercent = 12.5; // 3h visual representation (3/24 * 100)
                             
                             return (
                                <div key={ev.id} className="relative h-12 group" onClick={() => navigate(`/eventos/${ev.id}`)}>
