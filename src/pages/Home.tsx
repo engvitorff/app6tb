@@ -27,7 +27,7 @@ export const Home = () => {
 
   // Filtros
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
-  const [filterMonth, setFilterMonth] = useState('all');
+  const [filterMonth, setFilterMonth] = useState(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [filterStatus, setFilterStatus] = useState('all');
 
   const fetchData = async () => {
