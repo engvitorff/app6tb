@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EventShow, ScheduledMusician, Musician, BandProfile, ContractPreferences, IssuedContract } from '../data/mocks';
-import { ArrowLeft, Calendar as CalendarIcon, MapPin, Music, UserPlus, X, Check, CheckCircle2, Clock, Settings2, Receipt, Users2, Edit3, PiggyBank, RefreshCw, FileText, ExternalLink, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, MapPin, Music, UserPlus, X, Check, CheckCircle2, Clock, Settings2, Receipt, Users2, Edit3, PiggyBank, RefreshCw, FileText, ExternalLink, Trash2, AlertTriangle, Loader2, DollarSign } from 'lucide-react';
 import { formatCurrency, parseCurrencyInput } from '../utils/currency';
 import { ContractTemplate } from '../components/ContractTemplate';
 import html2canvas from 'html2canvas';
@@ -526,6 +526,25 @@ export const EventDetails = () => {
           <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-1">Custo Fixos</p>
           <p className="text-lg font-bold text-red-400">-{formatCurrency(custosTotaisFinaisCents)}</p>
         </div>
+
+        {/* PIX ACTION BUTTON */}
+        {event.status === 'A receber' && (
+          <div className="col-span-2">
+            <button
+               onClick={(e) => {
+                 e.stopPropagation();
+                 alert(`Processando Faturamento via PIX...\n\nShow: ${event.contractorName}\nValor: ${formatCurrency(event.totalValueCents)}\n\n(A integração com Mercado Pago está sendo preparada)`);
+               }}
+               className="w-full h-14 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group mb-2"
+            >
+              <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <DollarSign className="w-5 h-5 text-emerald-400" />
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest">Gerar Cobrança PIX</span>
+            </button>
+          </div>
+        )}
+
         <div className="col-span-2 bg-gradient-to-br from-[#FF169B] to-purple-600 rounded-2xl p-5 shadow-lg relative overflow-hidden">
           <p className="text-white/80 text-[10px] uppercase font-bold tracking-wider mb-1">Divisão por Sócio ({numSocios})</p>
           <h2 className="text-3xl font-bold text-white">{formatCurrency(cotaPorSocioCents)}</h2>
