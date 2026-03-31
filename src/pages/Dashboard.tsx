@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -63,7 +64,28 @@ export const Dashboard = () => {
   };
 
   useEffect(() => {
+    const checkFirstAccess = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const metadata = session.user.user_metadata;
+        if (!metadata?.full_name || metadata.full_name.trim() === '') {
+          // Redirecionar para cadastro se for primeiro acesso (sem nome)
+          navigate('/usuarios', { replace: true });
+        }
+      }
+    };
+    
     fetchData();
+    checkFirstAccess();
+  }, [navigate]);
+
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) setCurrentUser(session.user);
+    };
+    getUser();
   }, []);
 
   const years = useMemo(() => {
@@ -174,16 +196,18 @@ export const Dashboard = () => {
      return Object.values(dataMap);
   }, [events, filterYear, filterMonth, metrics]);
 
+  const displayUserName = currentUser?.user_metadata?.full_name?.split(' ')[0] || currentUser?.email?.split('@')[0] || 'Músico';
+
   return (
     <div className="p-6 pb-24">
       <header className="mb-8">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Olá, {bandProfile?.repName?.split(' ')[0] || 'Músico'}!</h1>
-            <p className="text-zinc-500 text-sm">Controle financeiro e análise de dados.</p>
+            <h1 className="text-2xl font-bold text-white mb-1 uppercase tracking-tighter">Olá, {displayUserName}!</h1>
+            <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">Resumo da sua agenda.</p>
           </div>
           <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center">
-             <span className="text-xs font-bold text-[#FF169B] uppercase">{bandProfile?.name?.substring(0,2)}</span>
+             <span className="text-xs font-bold text-[#FF169B] uppercase">{displayUserName.substring(0,2)}</span>
           </div>
         </div>
       </header>
