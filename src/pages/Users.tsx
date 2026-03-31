@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCircle, Phone, CreditCard, Save, Landmark, Building2, MapPin, Loader2, CheckCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { getBandProfile, saveBandProfile } from '../services/api';
 import { BandProfile } from '../data/mocks';
 
@@ -42,14 +43,26 @@ export const Users = () => {
     e.preventDefault();
     try {
       setSaving(true);
+      
+      // 1. Salvar no Banco de Dados (Tabela band_profile)
       await saveBandProfile(profile);
+      
+      // 2. Sincronizar Nome no Supabase Auth (Para liberar a Dashboard)
+      if (profile.repName) {
+        await supabase.auth.updateUser({
+          data: { full_name: profile.repName }
+        });
+        localStorage.setItem('pagode_finance_user', profile.repName);
+      }
+
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);
-        navigate('/');
+        navigate('/dashboard', { replace: true }); // Forçar ir para dashboard limpando o histórico
       }, 1500);
-    } catch (error) {
-      alert('Erro ao salvar os dados.');
+    } catch (error: any) {
+      console.error('Erro ao salvar:', error);
+      alert(`Erro ao salvar os dados: ${error.message || 'Verifique o SQL do Banco'}`);
     } finally {
       setSaving(false);
     }
