@@ -275,7 +275,29 @@ export const EventDetails = () => {
   const handleBulkPay = async () => {
     if (selectedPayIds.length === 0 || !event) return;
     try {
-      await Promise.all(selectedPayIds.map(id => api.updateSchedule(id, { paymentStatus: 'Pago' })));
+      await Promise.all(selectedPayIds.map(async (id) => {
+        const sm = event.scheduledMusicians.find(s => s.id === id);
+        if (sm) {
+          // Atualiza estado do pagamento na escala
+          await api.updateSchedule(id, { paymentStatus: 'Pago' });
+          
+          // Calcula valor real e gera Lançamento Automático no Extrato
+          const m = allMusicians.find(mus => mus.id === sm.musicianId);
+          if (m) {
+            const isSocio = m.role === 'Sócio';
+            const baseValue = isSocio ? cotaPorSocioCents : sm.feeOverrideCents;
+            const finalValue = baseValue - sm.otherExpensesCents;
+            
+            await api.createTransaction({
+              description: `Pgto. ${m.role}: ${m.name} (Evento: ${event.contractorName})`,
+              amountCents: finalValue,
+              type: 'OUT',
+              category: 'Cachê/Pagamento',
+              date: event.date
+            });
+          }
+        }
+      }));
       
       // Logar Atividade
       await api.logActivity({
