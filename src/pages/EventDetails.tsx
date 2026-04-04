@@ -21,7 +21,7 @@ export const EventDetails = () => {
 
   // Modals
   const [isScaleModalOpen, setIsScaleModalOpen] = useState(false);
-  const [isPayFreelancersModalOpen, setIsPayFreelancersModalOpen] = useState(false);
+  const [isPayTeamModalOpen, setIsPayTeamModalOpen] = useState(false);
   const [selectedPayIds, setSelectedPayIds] = useState<string[]>([]);
   const [editingExpenseScheduleId, setEditingExpenseScheduleId] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -287,7 +287,7 @@ export const EventDetails = () => {
       });
 
       alert(`${selectedPayIds.length} pagamento(s) processado(s) com sucesso!`);
-      setIsPayFreelancersModalOpen(false);
+      setIsPayTeamModalOpen(false);
       setSelectedPayIds([]);
       fetchData();
     } catch (error) {
@@ -295,9 +295,8 @@ export const EventDetails = () => {
     }
   };
 
-  const pendingFreelancers = event.scheduledMusicians.filter(sm => {
-    const m = allMusicians.find(mus => mus.id === sm.musicianId);
-    return m?.role === 'Freelancer' && sm.paymentStatus === 'Pendente';
+  const pendingTeam = event.scheduledMusicians.filter(sm => {
+    return sm.paymentStatus === 'Pendente';
   });
 
   const handleGeneratePDF = async () => {
@@ -500,9 +499,9 @@ export const EventDetails = () => {
               <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"><DollarSign className="w-5 h-5 text-emerald-400" /></div>
               <span className="text-xs font-black uppercase tracking-widest">Gerar Cobrança PIX</span>
             </button>
-            <button onClick={() => setIsPayFreelancersModalOpen(true)} className="w-full h-14 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group">
+            <button onClick={() => setIsPayTeamModalOpen(true)} className="w-full h-14 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group">
               <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"><Clock className="w-5 h-5 text-amber-400" /></div>
-              <span className="text-xs font-black uppercase tracking-widest">Pagar Freelancers</span>
+              <span className="text-xs font-black uppercase tracking-widest">Pagar Equipe</span>
             </button>
           </div>
         )}
@@ -667,28 +666,30 @@ export const EventDetails = () => {
         />
       )}
 
-      {isPayFreelancersModalOpen && (
+      {isPayTeamModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-center items-end md:items-center p-4">
           <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-md rounded-3xl p-6 shadow-2xl animate-in fade-in slide-in-from-bottom-10">
             <div className="flex justify-between items-center mb-6">
-              <div><h2 className="text-xl font-bold text-white leading-tight">Pagar Freelancers</h2><p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mt-1">Selecione para liquidar</p></div>
-              <button onClick={() => { setIsPayFreelancersModalOpen(false); setSelectedPayIds([]); }} className="p-2 bg-zinc-900 rounded-full"><X className="w-5 h-5 text-zinc-400" /></button>
+              <div><h2 className="text-xl font-bold text-white leading-tight">Pagar Equipe</h2><p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mt-1">Selecione para liquidar</p></div>
+              <button onClick={() => { setIsPayTeamModalOpen(false); setSelectedPayIds([]); }} className="p-2 bg-zinc-900 rounded-full"><X className="w-5 h-5 text-zinc-400" /></button>
             </div>
             <div className="space-y-2 mb-8 max-h-[40vh] overflow-y-auto pr-1">
-              {pendingFreelancers.map(sm => {
+              {pendingTeam.map(sm => {
                 const m = allMusicians.find(mus => mus.id === sm.musicianId);
                 const isSelected = selectedPayIds.includes(sm.id);
+                const isSocio = m?.role === 'Sócio';
+                const baseValue = isSocio ? cotaPorSocioCents : sm.feeOverrideCents;
                 return (
                   <div key={sm.id} onClick={() => setSelectedPayIds(prev => isSelected ? prev.filter(p => p !== sm.id) : [...prev, sm.id])} className={`p-4 rounded-2xl border transition-all cursor-pointer flex justify-between items-center ${isSelected ? 'bg-amber-500/10 border-amber-500/40' : 'bg-zinc-900 border-zinc-800'}`}>
                     <div className="flex items-center space-x-3">
                       <div className={`w-6 h-6 rounded-lg border flex items-center justify-center ${isSelected ? 'bg-amber-500 border-amber-500' : 'border-zinc-700 bg-zinc-800'}`}>{isSelected && <Check className="w-4 h-4 text-black font-black" />}</div>
-                      <div><p className="text-white text-sm font-bold">{m?.name}</p><p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">{m?.instrument}</p></div>
+                      <div><p className="text-white text-sm font-bold">{m?.name}</p><p className="text-[9px] text-zinc-500 uppercase font-black tracking-widest">{m?.role} - {m?.instrument}</p></div>
                     </div>
-                    <div className="text-right"><p className="text-white font-black text-sm">{formatCurrency(sm.feeOverrideCents - sm.otherExpensesCents)}</p></div>
+                    <div className="text-right"><p className="text-white font-black text-sm">{formatCurrency(baseValue - sm.otherExpensesCents)}</p></div>
                   </div>
                 );
               })}
-              {pendingFreelancers.length === 0 && <p className="text-center py-8 text-zinc-600 text-sm italic">Nenhum pagamento pendente.</p>}
+              {pendingTeam.length === 0 && <p className="text-center py-8 text-zinc-600 text-sm italic">Nenhum pagamento pendente.</p>}
             </div>
             <button onClick={handleBulkPay} disabled={selectedPayIds.length === 0} className={`w-full h-16 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center space-x-3 transition-all ${selectedPayIds.length > 0 ? 'bg-amber-500 text-black shadow-xl shadow-amber-900/20 active:scale-95' : 'bg-zinc-800 text-zinc-600 opacity-50 cursor-not-allowed'}`}>
               <CheckCircle2 className="w-5 h-5" /><span>Confirmar {selectedPayIds.length} Pagamento(s)</span>

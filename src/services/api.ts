@@ -130,6 +130,72 @@ export const getEvents = async (): Promise<EventShow[]> => {
   return (data || []).map(mapEventFromDB);
 };
 
+// --- Integração Mercado Pago ---
+
+export const getMercadoPagoIntegration = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  
+  const { data, error } = await supabase.from('user_integrations').select('updated_at').eq('user_id', user.id).single();
+  
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching integration', error);
+    return false;
+  }
+  
+  return !!data;
+};
+
+export const connectMercadoPago = async (code: string, redirectUri: string) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Não autenticado');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  // Endpoint genérico para as edge functions do Supabase local ou remoto
+  const edgeUrl = supabaseUrl.replace('.co', '.co/functions/v1').replace('http://127.0.0.1:54321', 'http://127.0.0.1:54321/functions/v1');
+  
+  const response = await fetch(`${edgeUrl}/mp-connect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ code, redirectUri })
+  });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.error || 'Falha ao vincular com o Mercado Pago.');
+  }
+
+  return responseData.success;
+};
+
+export const getMercadoPagoBalance = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return 0;
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const edgeUrl = supabaseUrl.replace('.co', '.co/functions/v1').replace('http://127.0.0.1:54321', 'http://127.0.0.1:54321/functions/v1');
+  
+  try {
+    const response = await fetch(`${edgeUrl}/mp-balance`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    });
+
+    const data = await response.json();
+    if (data.success && data.balance !== undefined) {
+      return data.balance;
+    }
+  } catch (err) {
+    console.error('Erro buscando balance do MP:', err);
+  }
+  return 0;
+};
+
 export const createEvent = async (event: Partial<EventShow>) => {
   // 1. Criar o evento
   const dbPayload = mapEventToDB(event);
@@ -433,6 +499,96 @@ export const logActivity = async (activity: Partial<ActivityLog>) => {
     // Se a tabela ainda não existir no Supabase, falhamos silenciosamente para não quebrar o app
     console.warn('Erro ao inserir log (provavelmente tabela activity_logs não existe):', error);
   }
+};
+
+// --- TRANSACTIONS (CAIXA DA BANDA) SERVICES ---
+
+export interface Transaction {
+  id: string;
+  description: string;
+  amountCents: number;
+  type: 'IN' | 'OUT';
+  category: string;
+  date: string;
+  createdAt?: string;
+}
+
+const mapTransactionFromDB = (dbTx: any): Transaction => ({
+  id: dbTx.id,
+  description: dbTx.description,
+  amountCents: dbTx.amount_cents,
+  type: dbTx.type,
+  category: dbTx.category,
+  date: dbTx.date,
+  createdAt: dbTx.created_at
+});
+
+const mapTransactionToDB = (tx: Partial<Transaction>) => ({
+  description: tx.description,
+  amount_cents: tx.amountCents,
+  type: tx.type,
+  category: tx.category,
+  date: tx.date
+});
+
+export const getTransactions = async (): Promise<Transaction[]> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.warn('Erro ao buscar transações (tabela não existe?):', error);
+    return [];
+  }
+  return (data || []).map(mapTransactionFromDB);
+};
+
+export const createTransaction = async (tx: Partial<Transaction>) => {
+  const dbPayload = mapTransactionToDB(tx);
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert(dbPayload)
+    .select()
+    .single();
+  
+  if (error) throw error;
+
+  // Log Activity
+  try {
+    const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+    await logActivity({
+      userName,
+      action: 'criou',
+      targetType: 'transacao',
+      targetId: data.id,
+      description: `${tx.type === 'IN' ? 'Entrada' : 'Saída'}: ${tx.description}`
+    });
+  } catch (err) { }
+
+  return mapTransactionFromDB(data);
+};
+
+export const deleteTransaction = async (id: string, description?: string) => {
+  const { error } = await supabase
+    .from('transactions')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
+
+  // Log Activity
+  try {
+    const userName = localStorage.getItem('pagode_finance_user') || 'Usuário';
+    await logActivity({
+      userName,
+      action: 'excluiu',
+      targetType: 'transacao',
+      targetId: id,
+      description: description || 'Lançamento de Caixa'
+    });
+  } catch (err) { }
 };
 
 export const getActivities = async (): Promise<ActivityLog[]> => {

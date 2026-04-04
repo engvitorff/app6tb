@@ -97,6 +97,7 @@ export const Home = () => {
   // Mudar filtro de ano → atualiza calendário
   const handleYearChange = (year: string) => {
     const newDate = new Date(currentDate);
+    newDate.setDate(1); // Evitar pulos de mês (ex: 31 fev)
     newDate.setFullYear(parseInt(year));
     setCurrentDate(newDate);
   };
@@ -104,6 +105,7 @@ export const Home = () => {
   // Mudar filtro de mês → atualiza calendário
   const handleMonthChange = (month: string) => {
     const newDate = new Date(currentDate);
+    newDate.setDate(1); // Evitar pulos de mês
     newDate.setMonth(parseInt(month) - 1);
     setCurrentDate(newDate);
   };
@@ -143,6 +145,7 @@ export const Home = () => {
 
   const changeMonth = (offset: number) => {
     const newDate = new Date(currentDate);
+    newDate.setDate(1);
     newDate.setMonth(currentDate.getMonth() + offset);
     setCurrentDate(newDate);
   };

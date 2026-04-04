@@ -15,7 +15,8 @@ import {
   Calendar,
   Building2,
   MapPin,
-  Music
+  Music,
+  Link2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -38,7 +39,13 @@ export const Dashboard = () => {
   const [events, setEvents] = useState<EventShow[]>([]);
   const [musicians, setMusicians] = useState<any[]>([]);
   const [bandProfile, setBandProfile] = useState<any>(null);
+  const [transactions, setTransactions] = useState<api.Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Mercado Pago States
+  const [isMpLinked, setIsMpLinked] = useState(false);
+  const [isLinkingMp, setIsLinkingMp] = useState(false);
+  const [mpRealBalance, setMpRealBalance] = useState(0);
   
   // Filtros
   const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
@@ -48,14 +55,20 @@ export const Dashboard = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [eventsData, musiciansData, bandData] = await Promise.all([
+      const [eventsData, musiciansData, bandData, txData, mpIntegrationStatus, mpBalanceData] = await Promise.all([
         api.getEvents(),
         api.getMusicians(),
-        api.getBandProfile()
+        api.getBandProfile(),
+        api.getTransactions(),
+        api.getMercadoPagoIntegration(),
+        api.getMercadoPagoBalance()
       ]);
       setEvents(eventsData);
       setMusicians(musiciansData);
       setBandProfile(bandData);
+      setTransactions(txData);
+      setIsMpLinked(mpIntegrationStatus);
+      setMpRealBalance(mpBalanceData);
     } catch (error) {
       console.error('Erro ao buscar dados da dashboard:', error);
     } finally {
@@ -86,6 +99,28 @@ export const Dashboard = () => {
       if (session?.user) setCurrentUser(session.user);
     };
     getUser();
+  }, []);
+
+  useEffect(() => {
+    const handleMpAuth = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) {
+        setIsLinkingMp(true);
+        try {
+          const redirectUri = window.location.origin + window.location.pathname;
+          await api.connectMercadoPago(code, redirectUri);
+          setIsMpLinked(true);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          alert('Mercado Pago vinculado com sucesso!');
+        } catch (err: any) {
+          alert('Erro ao vincular: ' + err.message);
+        } finally {
+          setIsLinkingMp(false);
+        }
+      }
+    };
+    handleMpAuth();
   }, []);
 
   const years = useMemo(() => {
@@ -156,16 +191,40 @@ export const Dashboard = () => {
       }
     });
 
+    let extratoBalanceFiltered = 0;
+    let extratoInFiltered = 0;
+    let extratoOutFiltered = 0;
+    transactions.forEach(tx => {
+      const [txYear, txMonth] = tx.date.split('-');
+      const matchYear = txYear === filterYear;
+      const matchMonth = filterMonth === 'all' || txMonth === filterMonth;
+      if (matchYear && matchMonth) {
+         if (tx.type === 'IN') {
+           extratoBalanceFiltered += tx.amountCents;
+           extratoInFiltered += tx.amountCents;
+         } else {
+           extratoBalanceFiltered -= tx.amountCents;
+           extratoOutFiltered += tx.amountCents;
+         }
+      }
+    });
+
+    // O Caixa Previsto App do Dashboard agora soma a retenção dos shows com o extrato
+    const totalCaixinhaGeral = totalCaixinha + extratoBalanceFiltered;
+
     const totalLucroEstimado = totalBruto - totalDespesas - totalFreela - totalCaixinha;
 
     return {
       totalBruto,
-      totalCaixinha,
+      totalCaixinha: totalCaixinhaGeral,
       totalDespesas,
       totalFreela,
-      totalLucroEstimado
+      totalLucroEstimado,
+      extratoBalanceFiltered,
+      extratoInFiltered,
+      extratoOutFiltered
     };
-  }, [filteredEvents, musicians]);
+  }, [filteredEvents, musicians, transactions, filterYear, filterMonth]);
 
   const pieData = [
     { name: 'Sócio', value: metrics.totalLucroEstimado, color: '#FF169B' },
@@ -244,22 +303,53 @@ export const Dashboard = () => {
 
       {/* Seção MERCADO PAGO (Saldo Real) */}
       <section className="mb-8">
-        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-4 ml-1">Monitoramento Mercado Pago</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-400 rounded-3xl p-5 shadow-lg shadow-blue-900/20 relative overflow-hidden group">
-            <Wallet className="absolute -right-4 -bottom-4 w-20 h-20 text-white opacity-10 group-hover:scale-110 transition-transform" />
-            <p className="text-blue-100 text-[10px] font-bold uppercase tracking-wider mb-0.5">Conta Corrente</p>
-            <h2 className="text-2xl font-black text-white">{formatCurrency(0)}</h2>
-            <span className="text-[9px] text-blue-200 mt-1 block">(Aguardando API)</span>
-          </div>
-
-          <div className="bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-3xl p-5 shadow-lg shadow-indigo-900/20 relative overflow-hidden group">
-            <PiggyBank className="absolute -right-4 -bottom-4 w-20 h-20 text-white opacity-10 group-hover:scale-110 transition-transform" />
-            <p className="text-indigo-100 text-[10px] font-bold uppercase tracking-wider mb-0.5">Caixa da Banda</p>
-            <h2 className="text-2xl font-black text-white">{formatCurrency(0)}</h2>
-            <span className="text-[9px] text-indigo-200 mt-1 block">(Aguardando API)</span>
-          </div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Monitoramento Mercado Pago</h3>
+          {!isMpLinked && (
+            <button 
+              onClick={() => {
+                const clientId = import.meta.env.VITE_MP_CLIENT_ID;
+                if (!clientId) {
+                  alert('O VITE_MP_CLIENT_ID não está configurado no arquivo .env. Certifique-se de adicioná-lo para realizar o vínculo.');
+                  return;
+                }
+                const redirectUri = window.location.origin + window.location.pathname;
+                window.location.href = `https://auth.mercadopago.com/authorization?client_id=${clientId}&response_type=code&platform_id=mp&state=pagode&redirect_uri=${redirectUri}`;
+              }}
+              disabled={isLinkingMp}
+              className="text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-full hover:bg-blue-500/20 transition-all flex items-center space-x-1 disabled:opacity-50"
+            >
+              <Link2 className="w-3 h-3" />
+              <span>{isLinkingMp ? 'Vinculando...' : 'Vincular Conta'}</span>
+            </button>
+          )}
         </div>
+        
+        {isMpLinked ? (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-400 rounded-3xl p-5 shadow-lg shadow-blue-900/20 relative overflow-hidden group">
+              <Wallet className="absolute -right-4 -bottom-4 w-20 h-20 text-white opacity-10 group-hover:scale-110 transition-transform" />
+              <p className="text-blue-100 text-[10px] font-bold uppercase tracking-wider mb-0.5">Conta Corrente</p>
+              <h2 className="text-2xl font-black text-white">{formatCurrency(mpRealBalance)}</h2>
+              <span className="text-[9px] text-blue-200 mt-1 block">Acesso concedido (Realtime API pendente)</span>
+            </div>
+
+            <div className="bg-gradient-to-br from-indigo-600 to-indigo-400 rounded-3xl p-5 shadow-lg shadow-indigo-900/20 relative overflow-hidden group">
+              <PiggyBank className="absolute -right-4 -bottom-4 w-20 h-20 text-white opacity-10 group-hover:scale-110 transition-transform" />
+              <p className="text-indigo-100 text-[10px] font-bold uppercase tracking-wider mb-0.5">Caixa da Banda</p>
+              <h2 className="text-2xl font-black text-white">{formatCurrency(0)}</h2>
+              <span className="text-[9px] text-indigo-200 mt-1 block">Rendimentos</span>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-zinc-900/50 border border-zinc-800 border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+             <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-3">
+               <Wallet className="w-6 h-6 text-blue-500" />
+             </div>
+             <p className="text-white font-bold text-sm">Integração não configurada</p>
+             <p className="text-zinc-500 text-xs mt-1 max-w-[250px]">Vincule sua conta do Mercado Pago para visualizar os saldos bancários reais da sua banda em tempo real.</p>
+          </div>
+        )}
       </section>
 
       {/* Seção RESULTADOS FILTRADOS (App) */}
@@ -304,18 +394,29 @@ export const Dashboard = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
-            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-1">Entradas</p>
-            <p className="text-sm font-bold text-emerald-400 truncate">{formatCurrency(metrics.totalBruto)}</p>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-2 md:p-3 flex flex-col justify-center">
+            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-0.5 md:mb-1">Entradas</p>
+            <p className="text-xs md:text-sm font-bold text-emerald-400 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis" title={formatCurrency(metrics.totalBruto)}>{formatCurrency(metrics.totalBruto)}</p>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
-            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-1">Sócios</p>
-            <p className="text-sm font-bold text-purple-400 truncate">{formatCurrency(metrics.totalLucroEstimado)}</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-2 md:p-3 flex flex-col justify-center">
+            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-0.5 md:mb-1">Sócios</p>
+            <p className="text-xs md:text-sm font-bold text-purple-400 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis" title={formatCurrency(metrics.totalLucroEstimado)}>{formatCurrency(metrics.totalLucroEstimado)}</p>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
-            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-1">Freelas</p>
-            <p className="text-sm font-bold text-amber-500 truncate">{formatCurrency(metrics.totalFreela)}</p>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-2 md:p-3 flex flex-col justify-center">
+            <p className="text-zinc-500 text-[8px] uppercase font-bold tracking-widest mb-0.5 md:mb-1">Freelas</p>
+            <p className="text-xs md:text-sm font-bold text-amber-500 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis" title={formatCurrency(metrics.totalFreela)}>{formatCurrency(metrics.totalFreela)}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mt-2 mb-4">
+          <div className="bg-zinc-900/50 border border-emerald-500/10 rounded-2xl p-2 md:p-3 flex flex-col justify-center">
+            <p className="text-emerald-500/70 text-[8px] uppercase font-bold tracking-widest mb-0.5 flex items-center"><ArrowUpRight className="w-2.5 h-2.5 mr-1" /> Extrato (In)</p>
+            <p className="text-xs md:text-sm font-bold text-emerald-400 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis" title={formatCurrency(metrics.extratoInFiltered)}>{formatCurrency(metrics.extratoInFiltered)}</p>
+          </div>
+          <div className="bg-zinc-900/50 border border-red-500/10 rounded-2xl p-2 md:p-3 flex flex-col justify-center">
+            <p className="text-red-500/70 text-[8px] uppercase font-bold tracking-widest mb-0.5 flex items-center"><ArrowDownRight className="w-2.5 h-2.5 mr-1" /> Extrato (Out)</p>
+            <p className="text-xs md:text-sm font-bold text-red-400 tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis" title={formatCurrency(metrics.extratoOutFiltered)}>{formatCurrency(metrics.extratoOutFiltered)}</p>
           </div>
         </div>
       </section>
@@ -331,7 +432,7 @@ export const Dashboard = () => {
               {pieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="55%" innerRadius={55} outerRadius={75} paddingAngle={5} dataKey="value" stroke="none">
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
                       {pieData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                     </Pie>
                     <Tooltip 

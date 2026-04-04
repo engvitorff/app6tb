@@ -8,6 +8,7 @@ import { Events } from './pages/Events';
 import { Users } from './pages/Users';
 import { EventDetails } from './pages/EventDetails';
 import { Contracts } from './pages/Contracts';
+import { Extrato } from './pages/Extrato';
 import { AppLayout } from './layouts/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/eventos/:id" element={<EventDetails />} />
             <Route path="/usuarios" element={<Users />} />
             <Route path="/cashflow" element={<Dashboard />} />
+            <Route path="/extrato" element={<Extrato />} />
             <Route path="/contracts" element={<Contracts />} />
           </Route>
         </Route>

@@ -12,7 +12,8 @@ import {
   Monitor, 
   Smartphone, 
   Bell, 
-  Clock 
+  Clock,
+  ListTree
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import * as api from '../services/api';
@@ -54,6 +55,7 @@ export const AppLayout = () => {
     { name: 'Músicos', path: '/musicos', icon: UsersIcon },
     { name: 'Eventos', path: '/eventos', icon: Calendar },
     { name: 'Financeiro', path: '/cashflow', icon: Wallet },
+    { name: 'Extrato', path: '/extrato', icon: ListTree },
     { name: 'Contratos', path: '/contracts', icon: FileText },
   ];
 
