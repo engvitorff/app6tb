@@ -66,6 +66,13 @@ export const EventDetails = () => {
     useCivilLGPD: true
   });
   const [issuedContracts, setIssuedContracts] = useState<IssuedContract[]>([]);
+  
+  // PIX & Checkout State
+  const [pixData, setPixData] = useState<{qr_code_base64: string, copy_paste: string} | null>(null);
+  const [checkoutData, setCheckoutData] = useState<{checkout_url: string} | null>(null);
+  const [isGeneratingPix, setIsGeneratingPix] = useState(false);
+  const [isGeneratingCheckout, setIsGeneratingCheckout] = useState(false);
+  const [isPaymentSelectionOpen, setIsPaymentSelectionOpen] = useState(false);
 
   const fetchData = async () => {
     if (!id) return;
@@ -317,6 +324,42 @@ export const EventDetails = () => {
     }
   };
 
+  const handleGeneratePix = async () => {
+    if (!event) return;
+    setIsGeneratingPix(true);
+    setIsPaymentSelectionOpen(false);
+    try {
+      const data = await api.createMercadoPagoPix(
+        event.totalValueCents / 100, 
+        `Pagamento do Show: ${event.contractorName}`,
+        event.id
+      );
+      setPixData(data);
+    } catch (err: any) {
+      alert('Erro ao gerar PIX: ' + err.message);
+    } finally {
+      setIsGeneratingPix(false);
+    }
+  };
+
+  const handleGenerateCheckout = async () => {
+    if (!event) return;
+    setIsGeneratingCheckout(true);
+    setIsPaymentSelectionOpen(false);
+    try {
+      const data = await api.createMercadoPagoCheckout(
+        event.totalValueCents / 100, 
+        `Pagamento do Show: ${event.contractorName}`,
+        event.id
+      );
+      setCheckoutData(data);
+    } catch (err: any) {
+      alert('Erro ao gerar Link: ' + err.message);
+    } finally {
+      setIsGeneratingCheckout(false);
+    }
+  };
+
   const pendingTeam = event.scheduledMusicians.filter(sm => {
     return sm.paymentStatus === 'Pendente';
   });
@@ -517,9 +560,17 @@ export const EventDetails = () => {
         </div>
         {event.status === 'A receber' && (
           <div className="col-span-2 space-y-2 mb-2">
-            <button onClick={(e) => { e.stopPropagation(); alert(`Processando Faturamento via PIX...\n\nShow: ${event.contractorName}\nValor: ${formatCurrency(event.totalValueCents)}`); }} className="w-full h-14 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group">
-              <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"><DollarSign className="w-5 h-5 text-emerald-400" /></div>
-              <span className="text-xs font-black uppercase tracking-widest">Gerar Cobrança PIX</span>
+            <button 
+              onClick={() => setIsPaymentSelectionOpen(true)} 
+              disabled={isGeneratingPix || isGeneratingCheckout}
+              className="w-full h-14 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group disabled:opacity-50"
+            >
+              <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                {(isGeneratingPix || isGeneratingCheckout) ? <Loader2 className="w-5 h-5 animate-spin" /> : <DollarSign className="w-5 h-5 text-emerald-400" />}
+              </div>
+              <span className="text-xs font-black uppercase tracking-widest">
+                {(isGeneratingPix || isGeneratingCheckout) ? 'Processando...' : 'Gerar Cobrança'}
+              </span>
             </button>
             <button onClick={() => setIsPayTeamModalOpen(true)} className="w-full h-14 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center space-x-3 transition-all active:scale-[0.98] group">
               <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"><Clock className="w-5 h-5 text-amber-400" /></div>
@@ -713,9 +764,128 @@ export const EventDetails = () => {
               })}
               {pendingTeam.length === 0 && <p className="text-center py-8 text-zinc-600 text-sm italic">Nenhum pagamento pendente.</p>}
             </div>
-            <button onClick={handleBulkPay} disabled={selectedPayIds.length === 0} className={`w-full h-16 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center space-x-3 transition-all ${selectedPayIds.length > 0 ? 'bg-amber-500 text-black shadow-xl shadow-amber-900/20 active:scale-95' : 'bg-zinc-800 text-zinc-600 opacity-50 cursor-not-allowed'}`}>
-              <CheckCircle2 className="w-5 h-5" /><span>Confirmar {selectedPayIds.length} Pagamento(s)</span>
+            <button 
+              onClick={handleBulkPay} 
+              disabled={selectedPayIds.length === 0} 
+              className={`w-full h-16 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center space-x-3 transition-all ${selectedPayIds.length > 0 ? 'bg-amber-500 text-black shadow-xl shadow-amber-900/20 active:scale-95' : 'bg-zinc-800 text-zinc-600 opacity-50 cursor-not-allowed'}`}
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              <span>Confirmar {selectedPayIds.length} Pagamento(s)</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DO PIX */}
+      {pixData && (
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex justify-center items-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+                <DollarSign className="w-8 h-8 text-emerald-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white uppercase tracking-tighter">Cobrança Gerada</h2>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Apresente ou envie para o contratante</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-3xl mb-6 flex justify-center shadow-lg shadow-emerald-500/5">
+              <img src={`data:image/png;base64,${pixData.qr_code_base64}`} alt="QR Code PIX" className="w-full max-w-[200px] h-auto" />
+            </div>
+
+            <div className="space-y-3">
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(pixData.copy_paste);
+                  alert('Código PIX copiado!');
+                }}
+                className="w-full h-14 bg-zinc-900 border border-zinc-800 text-white rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center space-x-2 active:scale-95 transition-all"
+              >
+                <span>Copiar Código</span>
+              </button>
+              <button 
+                onClick={() => setPixData(null)}
+                className="w-full h-14 text-white/50 font-bold text-xs uppercase tracking-widest hover:text-white transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SELEÇÃO DE TIPO DE COBRANÇA */}
+      {isPaymentSelectionOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex justify-center items-end md:items-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-sm rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-10">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-white uppercase tracking-tighter">Tipo de Cobrança</h2>
+              <button onClick={() => setIsPaymentSelectionOpen(false)} className="p-2 bg-zinc-900 rounded-full text-zinc-400"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="space-y-3">
+              <button 
+                onClick={handleGeneratePix}
+                className="w-full p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-left hover:bg-emerald-500/20 transition-all group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <DollarSign className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-sm">PIX Direto</p>
+                    <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">QR Code Imediato no App</p>
+                  </div>
+                </div>
+              </button>
+
+              <button 
+                onClick={handleGenerateCheckout}
+                className="w-full p-5 bg-blue-500/10 border border-blue-500/20 rounded-2xl text-left hover:bg-blue-500/20 transition-all group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <ExternalLink className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-sm">Link Multifôrma</p>
+                    <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Cartão ou PIX (Cliente escolhe)</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DO CHECKOUT (LINK) */}
+      {checkoutData && (
+        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex justify-center items-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 w-full md:max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                <ExternalLink className="w-8 h-8 text-blue-400" />
+              </div>
+              <h2 className="text-xl font-bold text-white uppercase tracking-tighter">Link Criado</h2>
+              <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Multi-pagamento (Cartão/PIX)</p>
+            </div>
+
+            <div className="space-y-3">
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(checkoutData.checkout_url);
+                  alert('Link copiado!');
+                }}
+                className="w-full h-14 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center space-x-2 active:scale-95 transition-all"
+              >
+                <span>Copiar Link de Pagamento</span>
+              </button>
+              <button 
+                onClick={() => setCheckoutData(null)}
+                className="w-full h-14 text-white/50 font-bold text-xs uppercase tracking-widest hover:text-white transition-colors"
+              >
+                Fechar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -196,6 +196,63 @@ export const getMercadoPagoBalance = async () => {
   return 0;
 };
 
+export const createMercadoPagoPix = async (amount: number, description: string, externalReference: string) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Não autenticado');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const edgeUrl = supabaseUrl.replace('.co', '.co/functions/v1').replace('http://127.0.0.1:54321', 'http://127.0.0.1:54321/functions/v1');
+  
+  const response = await fetch(`${edgeUrl}/mp-payments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ 
+      amount, 
+      description, 
+      external_reference: externalReference,
+      email: session.user.email
+    })
+  });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.error || 'Falha ao gerar pagamento PIX.');
+  }
+
+  return responseData;
+};
+
+export const createMercadoPagoCheckout = async (amount: number, description: string, externalReference: string) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Não autenticado');
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const edgeUrl = supabaseUrl.replace('.co', '.co/functions/v1').replace('http://127.0.0.1:54321', 'http://127.0.0.1:54321/functions/v1');
+  
+  const response = await fetch(`${edgeUrl}/mp-checkout`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
+    body: JSON.stringify({ 
+      amount, 
+      description, 
+      external_reference: externalReference
+    })
+  });
+
+  const responseData = await response.json();
+  if (!response.ok) {
+    throw new Error(responseData.error || 'Falha ao gerar link de pagamento.');
+  }
+
+  return responseData;
+};
+
 export const createEvent = async (event: Partial<EventShow>) => {
   // 1. Criar o evento
   const dbPayload = mapEventToDB(event);
