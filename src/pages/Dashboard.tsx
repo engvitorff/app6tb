@@ -314,7 +314,9 @@ export const Dashboard = () => {
                   return;
                 }
                 const redirectUri = window.location.origin + window.location.pathname;
-                window.location.href = `https://auth.mercadopago.com/authorization?client_id=${clientId}&response_type=code&platform_id=mp&state=pagode&redirect_uri=${redirectUri}`;
+                // Adicionando escopos explícitos (offline_access é vital para o mp_refresh_token)
+                const scopes = 'offline_access read write';
+                window.location.href = `https://auth.mercadopago.com/authorization?client_id=${clientId}&response_type=code&scope=${encodeURIComponent(scopes)}&state=pagode&redirect_uri=${encodeURIComponent(redirectUri)}`;
               }}
               disabled={isLinkingMp}
               className="text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-full hover:bg-blue-500/20 transition-all flex items-center space-x-1 disabled:opacity-50"
