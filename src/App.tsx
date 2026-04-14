@@ -14,16 +14,21 @@ import { AppLayout } from './layouts/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
+  // ATENÇÃO: Captura o código da URL *antes* que o <Navigate> do React Router
+  // limpe a URL mudando para /dashboard.
+  const [mpCode] = React.useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('code');
+  });
+
   useEffect(() => {
     const handleMpAuth = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      if (code && !window.location.href.includes('error=')) {
+      if (mpCode && !window.location.href.includes('error=')) {
         try {
           console.log('Detectado código do Mercado Pago, vinculando...');
           // Usamos a URL base para o redirectUri para bater com o que está no painel do MP
           const redirectUri = window.location.origin + '/';
-          await api.connectMercadoPago(code, redirectUri);
+          await api.connectMercadoPago(mpCode, redirectUri);
           
           // Limpa a URL e avisar o usuário
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -36,7 +41,7 @@ export default function App() {
       }
     };
     handleMpAuth();
-  }, []);
+  }, [mpCode]);
 
   return (
     <BrowserRouter>

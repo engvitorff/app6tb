@@ -25,6 +25,17 @@ serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // LOG DE INICIO
+    await supabase.from('activity_logs').insert({
+        user_name: 'MP_DEBUG_START',
+        action: 'criou',
+        target_type: 'debug',
+        target_id: 'sys',
+        description: `Code: ${code}, Uri: ${redirectUri}`
+    });
+
     if (!mpClientId || !mpClientSecret) {
       throw new Error('As credenciais do Mercado Pago não estão configuradas nas variáveis (Secrets) dessa Edge Function.');
     }
@@ -48,6 +59,14 @@ serve(async (req: Request) => {
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
+        // LOG DO ERRO DO MERCADO PAGO ONDE NINGUEM VE
+        await supabase.from('activity_logs').insert({
+            user_name: 'MP_DEBUG_ERROR_MP',
+            action: 'excluiu',
+            target_type: 'debug',
+            target_id: 'sys',
+            description: JSON.stringify(tokenData)
+        });
         return new Response(JSON.stringify({ error: tokenData }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: tokenResponse.status })
     }
 
@@ -58,7 +77,6 @@ serve(async (req: Request) => {
     }
     const token = authHeader.replace('Bearer ', '');
 
-    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) throw new Error('Não foi possível identificar seu usuário');

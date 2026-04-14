@@ -101,28 +101,6 @@ export const Dashboard = () => {
     getUser();
   }, []);
 
-  useEffect(() => {
-    const handleMpAuth = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-      if (code) {
-        setIsLinkingMp(true);
-        try {
-          const redirectUri = window.location.origin + '/';
-          await api.connectMercadoPago(code, redirectUri);
-          setIsMpLinked(true);
-          await fetchData(); // Recarregar saldos e status após o vínculo
-          window.history.replaceState({}, document.title, window.location.pathname);
-          alert('Mercado Pago vinculado com sucesso!');
-        } catch (err: any) {
-          alert('Erro ao vincular: ' + err.message);
-        } finally {
-          setIsLinkingMp(false);
-        }
-      }
-    };
-    handleMpAuth();
-  }, []);
 
   const years = useMemo(() => {
     const yearsSet = new Set<string>();
