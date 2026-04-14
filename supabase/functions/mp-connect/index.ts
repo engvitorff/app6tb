@@ -7,12 +7,18 @@ const corsHeaders = {
 }
 
 serve(async (req: Request) => {
+  console.log('--- NOVA REQUISICAO MP-CONNECT ---');
+  console.log('Metodo:', req.method);
+  console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries())));
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { code, redirectUri } = await req.json();
+    const rawBody = await req.text();
+    console.log('Body bruto:', rawBody);
+    const { code, redirectUri } = JSON.parse(rawBody);
     
     const mpClientId = Deno.env.get('MP_CLIENT_ID');
     const mpClientSecret = Deno.env.get('MP_CLIENT_SECRET');

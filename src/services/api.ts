@@ -159,7 +159,7 @@ export const connectMercadoPago = async (code: string, redirectUri: string) => {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${session.access_token}`,
-      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     },
     body: JSON.stringify({ code, redirectUri })
   });
@@ -184,7 +184,7 @@ export const getMercadoPagoBalance = async () => {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${session.access_token}`,
-        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
       }
     });
 
@@ -210,7 +210,7 @@ export const createMercadoPagoPix = async (amount: number, description: string, 
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${session.access_token}`,
-      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     },
     body: JSON.stringify({ 
       amount, 
@@ -240,7 +240,7 @@ export const createMercadoPagoCheckout = async (amount: number, description: str
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${session.access_token}`,
-      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+      'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || ''
     },
     body: JSON.stringify({ 
       amount, 

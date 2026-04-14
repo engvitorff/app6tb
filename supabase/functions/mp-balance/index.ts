@@ -7,6 +7,9 @@ const corsHeaders = {
 }
 
 serve(async (req: Request) => {
+  console.log('--- REQUISICAO MP-BALANCE ---');
+  console.log('Headers:', JSON.stringify(Object.fromEntries(req.headers.entries())));
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
