@@ -58,17 +58,26 @@ serve(async (req: Request) => {
     if (userError || !user) throw new Error('Não foi possível identificar seu usuário');
 
     // Cria/Atualiza a integração na tabela de segurança no BD do Supabase
-    const { error: upsertError } = await supabase
+    // Primeiro limpamos qualquer vinculo anterior para evitar conflitos de chave primária
+    await supabase
       .from('user_integrations')
-      .upsert({
+      .delete()
+      .eq('user_id', user.id);
+
+    const { error: insertError } = await supabase
+      .from('user_integrations')
+      .insert({
         user_id: user.id,
         mp_access_token: tokenData.access_token,
         mp_refresh_token: tokenData.refresh_token,
         mp_public_key: tokenData.public_key,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+      });
 
-    if (upsertError) throw upsertError;
+    if (insertError) {
+      console.error('Erro ao salvar integração no banco:', insertError);
+      throw new Error(`Erro ao salvar no banco de dados: ${insertError.message}`);
+    }
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 })
   } catch (error: any) {
