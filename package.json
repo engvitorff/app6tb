@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "push-all": "git push origin main && git push app6tb main",
-    "deploy": "git add -A && git commit -m \"deploy: update app\" && npm run push-all"
+    "deploy-functions": "supabase functions deploy --project-ref wzsgnqwszqcgctslumug",
+    "deploy": "git add -A && git commit -m \"deploy: update app\" && npm run push-all",
+    "deploy-all": "npm run deploy && npm run deploy-functions"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
@@ -32,6 +34,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
+    "supabase": "^2.90.0",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

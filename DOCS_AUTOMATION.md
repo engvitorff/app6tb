@@ -1,44 +1,45 @@
-# 🚀 Pagode Finance - Guia de Automação
+# 🚀 Pagode Finance - Guia de Automação Total
 
-Agora você tem comandos prontos para sincronizar seu projeto com o GitHub, Vercel e Supabase.
+Agora o seu projeto está configurado para que você não precise se preocupar com processos manuais.
 
-## 🛠️ Como usar os novos comandos
+## 🛠️ Comandos de Terminal (NPM)
 
-### 1. Atualizar e Enviar Tudo (Git + Vercel)
-Sempre que fizer uma mudança e quiser subir para a nuvem:
+Sempre que terminar uma alteração no código:
+
+### 1. Atualizar TUDO (Recomendado)
+Salva no Git, envia para o GitHub, atualiza a Vercel e sobe as Edge Functions do Supabase:
+```powershell
+npm run deploy-all
+```
+
+### 2. Apenas Código (Vite/Vercel)
 ```powershell
 npm run deploy
 ```
-**O que isso faz:**
-- Faz o `git add .` (salva todas as mudanças locais).
-- Faz o `git commit` com uma mensagem padrão.
-- Envia os arquivos para os dois repositórios do GitHub (`origin` e `app6tb`).
-- **Vercel:** Como está conectado ao seu GitHub, ele vai detectar o envio e iniciar o "Build" (publicação) do site automaticamente.
 
-### 2. Apenas Enviar ao GitHub
-Se você já fez o commit e só quer enviar:
+### 3. Apenas Funções do Supabase
 ```powershell
-npm run push-all
+npm run deploy-functions
 ```
 
 ---
 
-## 🗄️ Supabase (Banco de Dados)
+## 🌩️ Automação via GitHub (CI/CD)
 
-### Como subir mudanças no banco:
-No momento, a forma mais segura sem instalar o CLI é:
-1. Abra o arquivo `supabase_migration.sql`.
-2. Copie o código.
-3. Cole no **SQL Editor** do seu painel do Supabase e clique em **RUN**.
+Configurei um **GitHub Action** que monitora a pasta `supabase/functions`.
+- **Como funciona:** Sempre que você der um `push` (ou usar o `npm run deploy-all`), o próprio GitHub vai tentar subir suas funções para o Supabase.
 
-> **Dica:** Se futuramente você instalar o `supabase-cli`, podemos automatizar isso via terminal também!
+### ⚠️ Ação Necessária no GitHub:
+Para a automação via GitHub funcionar, você precisa adicionar dois "Secrets" no seu repositório do GitHub (**Settings > Secrets and variables > Actions > New repository secret**):
+1.  **`SUPABASE_ACCESS_TOKEN`**: Pegue o seu token em [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens).
+2.  **`SUPABASE_PROJECT_ID`**: Use o código `wzsgnqwszqcgctslumug`.
 
 ---
 
-## 🌩️ Vercel (Hospedagem)
-O site é atualizado automaticamente pelo GitHub. Para conferir o status:
-- Acesse seu painel da Vercel.
-- Veja o histórico de **Deployments**.
+## 🗄️ Supabase CLI Instalado
+O `supabase-cli` agora faz parte do seu projeto. Você pode rodar comandos diretamente se desejar:
+- `npx supabase status`
+- `npx supabase functions list`
 
 ---
 *Configurado por Antigravity* 🚀
