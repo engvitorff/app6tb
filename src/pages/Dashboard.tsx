@@ -313,9 +313,8 @@ export const Dashboard = () => {
                   alert('O VITE_MP_CLIENT_ID não está configurado no arquivo .env. Certifique-se de adicioná-lo para realizar o vínculo.');
                   return;
                 }
-                const redirectUri = window.location.origin + window.location.pathname;
-                const scopes = 'offline_access read write';
-                window.location.href = `https://auth.mercadopago.com/authorization?client_id=${clientId}&response_type=code&platform_id=mp&scope=${encodeURIComponent(scopes)}&state=pagode&redirect_uri=${encodeURIComponent(redirectUri)}`;
+                const redirectUri = window.location.origin + '/';
+                window.location.href = `https://auth.mercadopago.com/authorization?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
               }}
               disabled={isLinkingMp}
               className="text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-full hover:bg-blue-500/20 transition-all flex items-center space-x-1 disabled:opacity-50"
