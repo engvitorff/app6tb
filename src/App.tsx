@@ -31,8 +31,7 @@ export default function App() {
           window.location.reload(); // Forçar refresh para atualizar todos os componentes
         } catch (err: any) {
           console.error('Erro no vínculo global:', err);
-          // O erro de "Invalid JWT" deve ter sido resolvido pelo apikey, 
-          // mas se houver outro, ele aparecerá aqui.
+          alert('ERRO DE INTEGRAÇÃO: ' + err.message + '\nPor favor, tire um print desta mensagem.');
         }
       }
     };
